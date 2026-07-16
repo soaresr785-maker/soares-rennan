@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fazenda Modelo | Gatil/CTI</title>
+    <title>FelisHub | Gestão de Abrigos</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
@@ -630,6 +630,7 @@
 
         // Ao abrir a aplicação, fazemos o carregamento automático
         window.addEventListener('DOMContentLoaded', () => {
+            console.log("Aplicação carregada. Buscando dados...");
             fetchCatsData();
             startRealtimeSubscription();
         });
@@ -991,66 +992,116 @@
             }
         }
 
-        // Compression Helper
-        function compressAndResizeImage(file, callback) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 150;
-                    let width = img.width;
-                    let height = img.height;
+        // Compression Helper com tratamento robusto e timeout
+        function compressAndResizeImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                // Configura um timeout de 4 segundos para evitar que fique preso para sempre
+                const timeout = setTimeout(() => {
+                    reject(new Error("A compressão da foto demorou demasiado tempo."));
+                }, 4000);
 
-                    if (width > height) {
-                        if (width > MAX_SIZE) {
-                            height *= MAX_SIZE / width;
-                            width = MAX_SIZE;
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const MAX_SIZE = 150;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_SIZE) {
+                                    height *= MAX_SIZE / width;
+                                    width = MAX_SIZE;
+                                }
+                            } else {
+                                if (height > MAX_SIZE) {
+                                    width *= MAX_SIZE / height;
+                                    height = MAX_SIZE;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                            clearTimeout(timeout);
+                            resolve(compressedBase64);
+                        } catch (err) {
+                            clearTimeout(timeout);
+                            reject(err);
                         }
-                    } else {
-                        if (height > MAX_SIZE) {
-                            width *= MAX_SIZE / height;
-                            height = MAX_SIZE;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    callback(compressedBase64);
+                    };
+                    img.onerror = function() {
+                        clearTimeout(timeout);
+                        reject(new Error("Erro ao ler dados da imagem."));
+                    };
+                    img.src = event.target.result;
                 };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+                
+                reader.onerror = function() {
+                    clearTimeout(timeout);
+                    reject(new Error("Erro ao carregar o ficheiro de imagem."));
+                };
+                
+                reader.readAsDataURL(file);
+            });
         }
 
-        // Admissão
+        // Admissão com Fluxo Blindado
         async function admitPatient(event) {
             event.preventDefault();
+            console.log("Iniciando processo de admissão...");
+            
             const btn = document.getElementById('btn-admitir');
             const originalHTML = btn.innerHTML;
+            
+            // Ativa animação visual no botão
+            btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-circle-notch spinner"></i> Gravando...`;
 
-            const chip = document.getElementById('adm-chip').value.trim();
-            const name = document.getElementById('adm-name').value.trim();
-            const age = document.getElementById('adm-age').value.trim();
-            const obs = document.getElementById('adm-obs').value.trim();
-            const sector = document.getElementById('adm-sector').value;
-            const photoInput = document.getElementById('adm-photo');
+            try {
+                const chip = document.getElementById('adm-chip').value.trim();
+                const name = document.getElementById('adm-name').value.trim();
+                const age = document.getElementById('adm-age').value.trim();
+                const obs = document.getElementById('adm-obs').value.trim();
+                const sector = document.getElementById('adm-sector').value;
+                const photoInput = document.getElementById('adm-photo');
 
-            if (cats.some(c => c.chip === chip)) {
-                alert("Este Microchip já se encontra cadastrado!");
-                btn.innerHTML = originalHTML;
-                return;
-            }
+                console.log("Dados capturados:", { chip, name, age, sector });
 
-            const today = new Date().toLocaleDateString('pt-BR');
+                if (cats.some(c => c.chip === chip)) {
+                    alert("Este Microchip já se encontra cadastrado!");
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    return;
+                }
 
-            const saveNewCat = async (photoBase64 = null) => {
+                let photoBase64 = null;
+
+                // Processa a imagem se houver
+                if (photoInput.files && photoInput.files[0]) {
+                    console.log("Processando foto...");
+                    try {
+                        photoBase64 = await compressAndResizeImage(photoInput.files[0]);
+                        console.log("Foto comprimida com sucesso.");
+                    } catch (imageError) {
+                        console.warn("Falha ao carregar imagem:", imageError);
+                        const continueWithoutPhoto = confirm("Não conseguimos processar a foto selecionada. Deseja cadastrar o gatinho sem foto?");
+                        if (!continueWithoutPhoto) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHTML;
+                            return;
+                        }
+                    }
+                }
+
+                const today = new Date().toLocaleDateString('pt-BR');
                 const newCat = {
                     chip,
                     name,
@@ -1064,21 +1115,20 @@
                     updatedAt: today
                 };
 
-                try {
-                    await saveCatToSupabase(newCat);
-                    closeAdmitModal();
-                    alert(`${name} admitido com sucesso no ${sector}!`);
-                } catch (err) {
-                    alert("Erro ao admitir gatinho: " + err.message + "\n\nDica: Verifique se as regras de RLS (Row Level Security) estão habilitadas para gravação anônima na tabela 'cats' no seu Supabase.");
-                } finally {
-                    btn.innerHTML = originalHTML;
-                }
-            };
+                console.log("Enviando dados para o Supabase...");
+                await saveCatToSupabase(newCat);
+                console.log("Salvo no Supabase com sucesso!");
+                
+                closeAdmitModal();
+                alert(`${name} admitido com sucesso no ${sector}!`);
 
-            if (photoInput.files && photoInput.files[0]) {
-                compressAndResizeImage(photoInput.files[0], saveNewCat);
-            } else {
-                await saveNewCat(null);
+            } catch (err) {
+                console.error("Erro fatal durante admissão:", err);
+                alert("Erro ao admitir gatinho: " + err.message + "\n\nSe o erro persistir, verifique se inseriu corretamente o SUPABASE_URL e a SUPABASE_KEY no topo do script ou se as regras de RLS na tabela 'cats' permitem inserção pública.");
+            } finally {
+                // Restaura o botão independentemente do sucesso ou falha
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
             }
         }
 
