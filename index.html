@@ -116,6 +116,26 @@
             transform: translateY(-2px);
         }
 
+        .btn-config {
+            background-color: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-config:hover {
+            background-color: #cbd5e1;
+            color: #0f172a;
+        }
+
         .sidebar-footer {
             margin-top: auto;
             padding-top: 15px;
@@ -467,6 +487,10 @@
             <button class="btn-admit-trigger" onclick="openAdmitModal()">
                 <i class="fa-solid fa-plus-circle"></i> Admitir Gato
             </button>
+
+            <button class="btn-config" onclick="openConfigModal()">
+                <i class="fa-solid fa-gear"></i> Configurar Banco
+            </button>
         </div>
 
         <div class="sidebar-footer">
@@ -615,30 +639,87 @@
         </div>
     </div>
 
+    <div class="modal" id="modal-config" style="background: rgba(15, 23, 42, 0.8);">
+        <div class="modal-content animate__animated animate__fadeInDown" style="max-width: 450px;">
+            <h3 style="margin-top:0;"><i class="fa-solid fa-database" style="color:var(--primary-color);"></i> Configurar Conexão Supabase</h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
+                Por segurança e para poder usar diretamente no GitHub, insira as credenciais do seu projeto Supabase abaixo. Elas ficam salvas localmente apenas no seu navegador.
+            </p>
+            <div style="margin-bottom:15px;">
+                <label style="font-weight:bold; font-size:0.8rem; display:block; margin-bottom:5px;">SUPABASE URL</label>
+                <input type="text" id="cfg-url" placeholder="Ex: https://xyzabc.supabase.co">
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="font-weight:bold; font-size:0.8rem; display:block; margin-bottom:5px;">SUPABASE ANON KEY</label>
+                <input type="password" id="cfg-key" placeholder="Sua chave secreta 'anon' 'public'">
+            </div>
+            <div style="text-align:right;">
+                <button class="btn-submit" onclick="saveCredentialsFromModal()">
+                    <i class="fa-solid fa-floppy-disk"></i> Conectar Banco
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ==========================================
-        // CONFIGURAÇÃO DO SUPABASE (INSIRA SEUS DADOS AQUI!)
-        // ==========================================
-        const SUPABASE_URL = "SEU_SUPABASE_URL";
-        const SUPABASE_KEY = "SUA_SUPABASE_ANON_KEY";
-
-        // Inicializa o Cliente Supabase
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        let supabaseClient = null;
         let cats = [];
-        let activeCat = null; // Guarda o gato aberto no modal atualmente
+        let activeCat = null;
 
-        // Ao abrir a aplicação, fazemos o carregamento automático
+        // Ao abrir a aplicação, verifica as credenciais salvas no LocalStorage do navegador
         window.addEventListener('DOMContentLoaded', () => {
-            console.log("Aplicação carregada. Buscando dados...");
-            fetchCatsData();
-            startRealtimeSubscription();
+            const savedUrl = localStorage.getItem('FELISHUB_SUPABASE_URL');
+            const savedKey = localStorage.getItem('FELISHUB_SUPABASE_KEY');
+
+            if (savedUrl && savedKey) {
+                initializeSupabase(savedUrl, savedKey);
+            } else {
+                openConfigModal();
+            }
         });
+
+        // Inicializa o cliente do Supabase
+        function initializeSupabase(url, key) {
+            try {
+                supabaseClient = supabase.createClient(url, key);
+                console.log("Supabase inicializado com sucesso.");
+                fetchCatsData();
+                startRealtimeSubscription();
+            } catch (err) {
+                alert("Falha ao inicializar banco: " + err.message);
+                openConfigModal();
+            }
+        }
+
+        // Abre o modal para digitar credenciais
+        function openConfigModal() {
+            document.getElementById('cfg-url').value = localStorage.getItem('FELISHUB_SUPABASE_URL') || '';
+            document.getElementById('cfg-key').value = localStorage.getItem('FELISHUB_SUPABASE_KEY') || '';
+            document.getElementById('modal-config').style.display = 'flex';
+        }
+
+        // Salva as credenciais do Modal e conecta
+        function saveCredentialsFromModal() {
+            const url = document.getElementById('cfg-url').value.trim();
+            const key = document.getElementById('cfg-key').value.trim();
+
+            if (!url || !key) {
+                alert("Ambos os campos são obrigatórios!");
+                return;
+            }
+
+            localStorage.setItem('FELISHUB_SUPABASE_URL', url);
+            localStorage.setItem('FELISHUB_SUPABASE_KEY', key);
+
+            document.getElementById('modal-config').style.display = 'none';
+            initializeSupabase(url, key);
+        }
 
         // ==========================================
         // LEITURA DOS DADOS (SUPABASE)
         // ==========================================
         async function fetchCatsData() {
+            if (!supabaseClient) return;
             try {
                 const { data, error } = await supabaseClient
                     .from('cats')
@@ -666,7 +747,6 @@
 
                 renderGrids();
                 
-                // Se o prontuário estiver aberto, recarrega a tela para atualizar as infos dele em tempo real
                 if (activeCat) {
                     const refreshed = cats.find(c => c.chip === activeCat.chip);
                     if (refreshed) {
@@ -682,6 +762,7 @@
         }
 
         function startRealtimeSubscription() {
+            if (!supabaseClient) return;
             supabaseClient
                 .channel('schema-db-changes')
                 .on(
@@ -695,6 +776,7 @@
         }
 
         async function saveCatToSupabase(catObj) {
+            if (!supabaseClient) throw new Error("Banco de dados não configurado.");
             const dbPayload = {
                 chip: catObj.chip,
                 name: catObj.name,
@@ -713,17 +795,17 @@
                     .from('cats')
                     .update(dbPayload)
                     .eq('id', catObj.id);
-                if (error) throw new Error("Erro ao atualizar dados: " + error.message);
+                if (error) throw new Error(error.message);
             } else {
                 const { error } = await supabaseClient
                     .from('cats')
                     .insert([dbPayload]);
-                if (error) throw new Error("Erro ao criar prontuário: " + error.message);
+                if (error) throw new Error(error.message);
             }
         }
 
         // ==========================================
-        // RENDERIZAÇÃO DOS CARD DE GATOS
+        // RENDERIZAÇÃO DOS CARDS DE GATOS
         // ==========================================
         function renderGrids() {
             const gridGatil = document.getElementById('grid-gatil');
@@ -736,7 +818,7 @@
             let countCti = 0;
 
             cats.forEach(cat => {
-                if (cat.status !== 'Gatil' && cat.status !== 'CTI') return; // Filtra altas/óbitos fora do grid ativo
+                if (cat.status !== 'Gatil' && cat.status !== 'CTI') return;
 
                 const card = document.createElement('div');
                 card.className = `cat-card ${cat.status === 'CTI' ? 'status-cti' : ''} animate__animated animate__fadeIn`;
@@ -771,7 +853,6 @@
             }
         }
 
-        // Filtro em tempo real digitando
         function filterCats(sector) {
             const query = document.getElementById(`search-${sector.toLowerCase()}`).value.toLowerCase().trim();
             const cards = document.querySelectorAll(`#grid-${sector.toLowerCase()} .cat-card`);
@@ -815,7 +896,6 @@
         function loadActiveCatProfile() {
             if (!activeCat) return;
 
-            // Header do Gato
             document.getElementById('prof-name').innerText = activeCat.name;
             document.getElementById('prof-chip').innerText = activeCat.chip;
             document.getElementById('prof-age').innerText = activeCat.age || 'Não informada';
@@ -829,13 +909,11 @@
             badge.innerText = activeCat.status;
             badge.className = `badge-status ${activeCat.status === 'CTI' ? 'badge-cti' : 'badge-gatil'}`;
 
-            // Botão rápido de Toggle de Setor
             const btnSector = document.getElementById('btn-toggle-sector');
             btnSector.innerHTML = activeCat.status === 'Gatil' 
                 ? `<i class="fa-solid fa-hospital"></i> Mover para CTI`
                 : `<i class="fa-solid fa-cat"></i> Mover para Gatil`;
 
-            // Histórico / Linha do tempo
             const historyList = document.getElementById('prof-history-list');
             const history = activeCat.history || [];
             historyList.innerHTML = history.map(h => `
@@ -844,7 +922,6 @@
                 </div>
             `).reverse().join('') || '<p style="color:#64748b; font-size:0.85rem;">Sem anotações registradas.</p>';
 
-            // Medicações Ativas
             const medsList = document.getElementById('prof-meds-list');
             const medications = activeCat.medications || [];
             medsList.innerHTML = medications.map((med, index) => `
@@ -860,7 +937,6 @@
             `).join('') || '<p style="color:#64748b; font-size:0.85rem;">Nenhum tratamento ativo no momento.</p>';
         }
 
-        // Adicionar Evolução
         async function addProfileEvolution() {
             const input = document.getElementById('prof-new-evolution');
             const text = input.value.trim();
@@ -876,11 +952,10 @@
                 input.value = '';
                 loadActiveCatProfile();
             } catch (err) {
-                alert(err.message + " | Verifique as permissões de gravação no banco.");
+                alert("Erro ao salvar evolução: " + err.message + "\n\nSe o RLS estiver ativado no painel do Supabase, altere para 'Disabled RLS' na tabela 'cats'.");
             }
         }
 
-        // Adicionar Medicação Direto no Perfil
         async function addProfileMedication() {
             const name = document.getElementById('new-med-name').value.trim();
             const freq = document.getElementById('new-med-freq').value.trim();
@@ -906,11 +981,10 @@
                 document.getElementById('new-med-period').value = '';
                 loadActiveCatProfile();
             } catch (err) {
-                alert(err.message);
+                alert("Erro ao salvar medicação: " + err.message);
             }
         }
 
-        // Suspender Medicação
         async function removeProfileMedication(index) {
             if (!activeCat) return;
             const today = new Date().toLocaleDateString('pt-BR');
@@ -923,7 +997,7 @@
                 await saveCatToSupabase(activeCat);
                 loadActiveCatProfile();
             } catch (err) {
-                alert(err.message);
+                alert("Erro ao suspender medicação: " + err.message);
             }
         }
 
@@ -946,7 +1020,7 @@
                 loadActiveCatProfile();
                 alert(`${activeCat.name} transferido para o ${dest}!`);
             } catch (err) {
-                alert(err.message);
+                alert("Erro ao transferir setor: " + err.message);
             }
         }
 
@@ -966,7 +1040,7 @@
                     closeProfileModal();
                     alert(`Óbito do gatinho ${activeCat.name} registrado.`);
                 } catch (err) {
-                    alert(err.message);
+                    alert("Erro ao registrar óbito: " + err.message);
                 }
             }
         }
@@ -987,17 +1061,15 @@
                     closeProfileModal();
                     alert(`Alta realizada com sucesso para ${activeCat.name}!`);
                 } catch (err) {
-                    alert(err.message);
+                    alert("Erro ao dar alta: " + err.message);
                 }
             }
         }
 
-        // Compression Helper com tratamento robusto e timeout
         function compressAndResizeImage(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 
-                // Configura um timeout de 4 segundos para evitar que fique preso para sempre
                 const timeout = setTimeout(() => {
                     reject(new Error("A compressão da foto demorou demasiado tempo."));
                 }, 4000);
@@ -1053,7 +1125,6 @@
             });
         }
 
-        // Admissão com Fluxo Blindado
         async function admitPatient(event) {
             event.preventDefault();
             console.log("Iniciando processo de admissão...");
@@ -1061,7 +1132,6 @@
             const btn = document.getElementById('btn-admitir');
             const originalHTML = btn.innerHTML;
             
-            // Ativa animação visual no botão
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-circle-notch spinner"></i> Gravando...`;
 
@@ -1084,7 +1154,6 @@
 
                 let photoBase64 = null;
 
-                // Processa a imagem se houver
                 if (photoInput.files && photoInput.files[0]) {
                     console.log("Processando foto...");
                     try {
@@ -1124,15 +1193,13 @@
 
             } catch (err) {
                 console.error("Erro fatal durante admissão:", err);
-                alert("Erro ao admitir gatinho: " + err.message + "\n\nSe o erro persistir, verifique se inseriu corretamente o SUPABASE_URL e a SUPABASE_KEY no topo do script ou se as regras de RLS na tabela 'cats' permitem inserção pública.");
+                alert("Ocorreu um erro ao gravar no Supabase:\n\n" + err.message + "\n\n⚠️ IMPORTANTE:\nCertifique-se de que o RLS (Row Level Security) está DESATIVADO no painel do Supabase para a tabela 'cats'.");
             } finally {
-                // Restaura o botão independentemente do sucesso ou falha
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
             }
         }
 
-        // Controle de Abas Simples
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
