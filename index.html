@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FelisHub | Gestão de Abrigos</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary-color: #ff8a5c;
@@ -27,6 +28,36 @@
             line-height: 1.25;
         }
 
+        /* Tela de Login */
+        #auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+        }
+
+        .auth-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .auth-card h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
         /* Sidebar */
         aside {
             width: 260px;
@@ -34,7 +65,7 @@
             border-right: 1px solid var(--border-color);
             padding: 24px;
             box-sizing: border-box;
-            display: flex;
+            display: none; /* Só aparece logado */
             flex-direction: column;
             position: sticky;
             top: 0;
@@ -78,12 +109,6 @@
             background-color: #f1f5f9;
         }
 
-        .backup-section {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--border-color);
-        }
-
         .btn-backup {
             width: 100%;
             padding: 8px;
@@ -96,11 +121,6 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
-        }
-
-        .btn-backup:hover {
-            background-color: var(--primary-color);
-            color: #ffffff;
         }
 
         /* Rodapé do Desenvolvedor na Sidebar */
@@ -120,6 +140,7 @@
             padding: 40px;
             box-sizing: border-box;
             overflow-y: auto;
+            display: none; /* Só aparece logado */
         }
 
         .section {
@@ -202,6 +223,7 @@
             padding: 14px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
         }
 
         th {
@@ -276,6 +298,30 @@
             gap: 15px;
         }
 
+        /* Miniatura redonda para as tabelas */
+        .table-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            vertical-align: middle;
+            margin-right: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .table-avatar-placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            font-size: 1.2rem;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -299,23 +345,40 @@
 </head>
 <body>
 
-    <aside>
+    <div id="auth-container">
+        <div class="auth-card">
+            <h1>🐱 FelisHub</h1>
+            <p>Aceda para gerir o abrigo em tempo real</p>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="auth-email" required placeholder="seuemail@exemplo.com">
+                </div>
+                <div class="form-group">
+                    <label>Palavra-passe</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit" style="width:100%; margin-bottom:10px;">Entrar</button>
+                <button type="button" class="btn-submit" onclick="handleSignUp()" style="width:100%; background-color:#64748b;">Criar Conta</button>
+            </form>
+        </div>
+    </div>
+
+    <aside id="app-sidebar">
         <div>
             <h1>🐱 FelisHub</h1>
             <p class="subtitle">Gestão para Abrigos Felinos</p>
             <hr style="margin-bottom: 15px; border: 0; border-top: 1px solid var(--border-color);">
             <button class="tab-btn active" onclick="switchTab('internacao')">🏥 Internação</button>
-            <button class="tab-btn" onclick="switchTab('buscar')">🔍 Buscar Gatinho</button>
+            <button class="tab-btn" onclick="switchTab('pesquisar')">🔍 Pesquisar</button>
             <button class="tab-btn" onclick="switchTab('medicacoes')">💊 Medicações</button>
             <button class="tab-btn" onclick="switchTab('exames')">🧪 Exames Feitos</button>
             <button class="tab-btn" onclick="switchTab('movimentacoes')">🔄 Movimentações</button>
             <button class="tab-btn" onclick="switchTab('prontuarios')">📋 Prontuário Individual</button>
         </div>
 
-        <div class="backup-section">
-            <button class="btn-backup" onclick="exportDataBackup()">📥 Exportar Backup Manual</button>
-            <button class="btn-backup" onclick="document.getElementById('import-file').click()">📤 Importar Backup</button>
-            <input type="file" id="import-file" style="display: none;" onchange="importDataBackup(event)">
+        <div style="margin-top: 20px;">
+            <button class="btn-backup" onclick="handleLogout()" style="width:100%; color:var(--danger-color); border-color:var(--danger-color);">🚪 Sair do Sistema</button>
         </div>
 
         <div class="sidebar-footer">
@@ -323,11 +386,11 @@
         </div>
     </aside>
 
-    <main>
+    <main id="app-main">
         
         <div id="tab-internacao" class="section active">
             <h2>🏥 Unidade de Internação e Triagem</h2>
-            <p>Admitir e gerenciar leitos ativos no CTI e alojamentos comuns no Gatil.</p>
+            <p>Admitir e gerir leitos ativos no CTI e alojamentos comuns no Gatil.</p>
             
             <div class="record-section">
                 <h4>Nova Admissão</h4>
@@ -347,9 +410,13 @@
                         </div>
                     </div>
                     <div class="grid-3">
-                        <div class="form-group" style="grid-column: span 2;">
+                        <div class="form-group">
                             <label>Prontuário Inicial / Observações</label>
                             <input type="text" id="adm-obs" placeholder="Motivo da entrada ou estado comportamental">
+                        </div>
+                        <div class="form-group">
+                            <label>Foto do Gatinho</label>
+                            <input type="file" id="adm-photo" accept="image/*">
                         </div>
                         <div class="form-group">
                             <label>Setor de Entrada *</label>
@@ -367,8 +434,8 @@
             <table style="margin-bottom: 30px;">
                 <thead>
                     <tr>
+                        <th>Paciente</th>
                         <th>Microchip</th>
-                        <th>Nome</th>
                         <th>Idade</th>
                         <th>Status</th>
                         <th>Ações rápidas</th>
@@ -381,8 +448,8 @@
             <table>
                 <thead>
                     <tr>
+                        <th>Paciente</th>
                         <th>Microchip</th>
-                        <th>Nome</th>
                         <th>Idade</th>
                         <th>Status</th>
                         <th>Ações rápidas</th>
@@ -392,23 +459,23 @@
             </table>
         </div>
 
-        <div id="tab-buscar" class="section">
-            <h2>🔍 Buscar Gatinho no Banco de Dados</h2>
+        <div id="tab-pesquisar" class="section">
+            <h2>🔍 Pesquisar Gatinho no Banco de Dados</h2>
             <p>Pesquise rapidamente por qualquer paciente utilizando o nome ou o número do microchip.</p>
 
             <div class="record-section">
                 <div class="form-group">
-                    <label for="search-input">Digite o Nome ou Microchip do Gato:</label>
+                    <label for="search-input">Pesquisar por Nome ou Microchip:</label>
                     <input type="text" id="search-input" onkeyup="searchCats()" placeholder="Comece a digitar para pesquisar em tempo real...">
                 </div>
             </div>
 
-            <h3>Resultado da Busca</h3>
+            <h3>Resultado da Pesquisa</h3>
             <table>
                 <thead>
                     <tr>
+                        <th>Paciente</th>
                         <th>Microchip</th>
-                        <th>Nome do Gato</th>
                         <th>Idade</th>
                         <th>Setor Atual</th>
                         <th>Última Atualização</th>
@@ -416,7 +483,7 @@
                 </thead>
                 <tbody id="table-search-body">
                     <tr>
-                        <td colspan="5" style="text-align: center; color: #64748b;">Digite algo no campo acima para buscar...</td>
+                        <td colspan="5" style="text-align: center; color: #64748b;">Digite algo no campo acima para pesquisar...</td>
                     </tr>
                 </tbody>
             </table>
@@ -473,7 +540,7 @@
 
         <div id="tab-exames" class="section">
             <h2>🧪 Histórico de Exames Laboratoriais</h2>
-            <p>Registre exames realizados pelos pacientes para manter o acompanhamento clínico em dia.</p>
+            <p>Registe exames realizados pelos pacientes para manter o acompanhamento clínico em dia.</p>
 
             <div class="record-section">
                 <h4>Registrar Exame Realizado</h4>
@@ -521,7 +588,7 @@
 
         <div id="tab-movimentacoes" class="section">
             <h2>🔄 Registro de Movimentações de Sala (CTI/Gatil)</h2>
-            <p>Monitore a rotatividade e histórico de mudanças de setor dos pacientes dentro do abrigo.</p>
+            <p>Monitorize a rotatividade e histórico de mudanças de setor dos pacientes dentro do abrigo.</p>
 
             <div class="record-section">
                 <h4>Registrar Nova Movimentação</h4>
@@ -567,7 +634,7 @@
             <p>Selecione um paciente para carregar a sua ficha médica integrada de forma consolidada.</p>
 
             <div class="form-group" style="max-width: 400px; margin-bottom: 30px;">
-                <label>Buscar Paciente no Banco de Dados:</label>
+                <label>Pesquisar Paciente no Banco de Dados:</label>
                 <select id="patient-search-select" onchange="loadIndividualPatientProfile()">
                     <option value="">-- Escolha um Paciente --</option>
                 </select>
@@ -575,12 +642,16 @@
 
             <div id="individual-profile-card" style="display: none;">
                 <div class="record-section" style="border-left: 5px solid var(--primary-color);">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <h2 id="prof-name" style="border: none; margin: 0 0 5px 0; padding: 0;">-</h2>
-                            <p style="margin: 0; color: #64748b;">
-                                Microchip: <strong id="prof-chip">-</strong> | Idade Estimada: <strong id="prof-age">-</strong>
-                            </p>
+                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 18px; align-items: center;">
+                            <img id="prof-photo" src="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); display: none;">
+                            <div id="prof-photo-placeholder" class="table-avatar-placeholder" style="width: 80px; height: 80px; font-size: 2.5rem; margin-right: 0;">🐱</div>
+                            <div>
+                                <h2 id="prof-name" style="border: none; margin: 0 0 5px 0; padding: 0;">-</h2>
+                                <p style="margin: 0; color: #64748b;">
+                                    Microchip: <strong id="prof-chip">-</strong> | Idade Estimada: <strong id="prof-age">-</strong>
+                                </p>
+                            </div>
                         </div>
                         <span id="prof-badge" class="badge-status">-</span>
                     </div>
@@ -621,84 +692,231 @@
     </main>
 
     <script>
+        // ==========================================
+        // CONFIGURAÇÃO DO SUPABASE (INSIRA SEUS DADOS AQUI!)
+        // ==========================================
+        const SUPABASE_URL = "SEU_SUPABASE_URL";
+        const SUPABASE_KEY = "SUA_SUPABASE_ANON_KEY";
+
+        // Inicializa o Cliente Supabase
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let cats = [];
 
-        // Força o navegador a dar preferência e nunca apagar esta memória
-        async function requestPersistentStorage() {
-            if (navigator.storage && navigator.storage.persist) {
-                const isPersisted = await navigator.storage.persist();
-                console.log(`Persistência de dados assegurada pelo navegador: ${isPersisted}`);
+        // Verifica o estado da Autenticação do Utilizador
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                // Logado
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-sidebar').style.display = 'flex';
+                document.getElementById('app-main').style.display = 'block';
+                startRealtimeSubscription();
+                fetchCatsData();
+            } else {
+                // Deslogado
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('app-sidebar').style.display = 'none';
+                document.getElementById('app-main').style.display = 'none';
             }
+        });
+
+        // Eventos de Autenticação
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) alert("Erro ao fazer login: " + error.message);
         }
 
-        // Tenta carregar os dados salvos no telemóvel de forma super protegida
-        function loadCats() {
-            try {
-                const localData = localStorage.getItem('felishub_cats');
-                if (localData) {
-                    cats = JSON.parse(localData);
-                    console.log("Dados carregados do cache com sucesso!");
-                } else {
-                    cats = [];
-                }
-            } catch (e) {
-                console.error("Falha ao recuperar os dados locais:", e);
-                cats = [];
-            }
-            populateCatDropdowns();
-            renderAllTables();
-        }
+        async function handleSignUp() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
 
-        // Salva os dados de gatinhos de forma redundante e segura
-        function saveCats() {
-            try {
-                localStorage.setItem('felishub_cats', JSON.stringify(cats));
-                sessionStorage.setItem('felishub_cats_session', JSON.stringify(cats));
-            } catch (e) {
-                alert("Erro ao salvar dados internamente no aparelho. O seu armazenamento pode estar cheio!");
-            }
-            populateCatDropdowns();
-            renderAllTables();
-        }
-
-        // BACKUP MANUAL: Exporta tudo em formato de arquivo para o telemóvel/computador
-        function exportDataBackup() {
-            if (cats.length === 0) {
-                alert("Não existem dados de gatinhos cadastrados para fazer backup!");
+            if (!email || !password) {
+                alert("Preencha o e-mail e a palavra-passe primeiro para criar a conta.");
                 return;
             }
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cats));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `felishub_backup_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+
+            const { error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) {
+                alert("Erro ao criar conta: " + error.message);
+            } else {
+                alert("Conta criada com sucesso! Se configurou confirmação por e-mail, verifique a sua caixa de entrada.");
+            }
         }
 
-        // BACKUP MANUAL: Restaura o arquivo caso o telemóvel apague a memória do site
-        function importDataBackup(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+        }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedCats = JSON.parse(e.target.result);
-                    if (Array.isArray(importedCats)) {
-                        cats = importedCats;
-                        saveCats();
-                        alert("Backup restaurado com sucesso! Todos os gatinhos voltaram ao sistema.");
-                    } else {
-                        alert("O ficheiro de backup selecionado é inválido.");
+        // ==========================================
+        // SINCRONIZAÇÃO EM TEMPO REAL E LEITURA (SUPABASE)
+        // ==========================================
+        async function fetchCatsData() {
+            const { data, error } = await supabaseClient
+                .from('cats')
+                .select('*')
+                .order('name', { ascending: true });
+
+            if (error) {
+                console.error("Erro ao carregar os dados:", error);
+                return;
+            }
+
+            // Normaliza as colunas de snake_case (Postgres) para camelCase (sistema JS existente)
+            cats = data.map(item => ({
+                id: item.id,
+                chip: item.chip,
+                name: item.name,
+                age: item.age,
+                status: item.status,
+                photo: item.photo,
+                history: item.history || [],
+                medications: item.medications || [],
+                exams: item.exams || [],
+                movements: item.movements || [],
+                updatedAt: item.updated_at
+            }));
+
+            populateCatDropdowns();
+            renderAllTables();
+            
+            if (document.getElementById('patient-search-select').value) {
+                loadIndividualPatientProfile();
+            }
+        }
+
+        function startRealtimeSubscription() {
+            // Escuta atualizações e inserções no banco em tempo real de qualquer utilizador
+            supabaseClient
+                .channel('schema-db-changes')
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'cats' },
+                    payload => {
+                        fetchCatsData();
                     }
-                } catch (err) {
-                    alert("Erro ao ler o ficheiro de backup.");
-                }
-            };
-            reader.readAsText(file);
+                )
+                .subscribe();
         }
 
+        async function saveCatToSupabase(catObj) {
+            // Prepara o objeto para as colunas SQL corretas
+            const dbPayload = {
+                chip: catObj.chip,
+                name: catObj.name,
+                age: catObj.age,
+                status: catObj.status,
+                photo: catObj.photo,
+                history: catObj.history,
+                medications: catObj.medications,
+                exams: catObj.exams,
+                movements: catObj.movements,
+                updated_at: catObj.updatedAt
+            };
+
+            if (catObj.id) {
+                // Atualização
+                const { error } = await supabaseClient
+                    .from('cats')
+                    .update(dbPayload)
+                    .eq('id', catObj.id);
+                if (error) alert("Erro ao atualizar dados: " + error.message);
+            } else {
+                // Criação
+                const { error } = await supabaseClient
+                    .from('cats')
+                    .insert([dbPayload]);
+                if (error) alert("Erro ao criar prontuário: " + error.message);
+            }
+        }
+
+        // ==========================================
+        // FLUXO DE COMPRESSÃO E ADMISSÃO
+        // ==========================================
+        function compressAndResizeImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 150;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6); // 60% qualidade para otimizar tamanho no Postgres
+                    callback(compressedBase64);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function admitPatient(event) {
+            event.preventDefault();
+            const chip = document.getElementById('adm-chip').value.trim();
+            const name = document.getElementById('adm-name').value.trim();
+            const age = document.getElementById('adm-age').value.trim();
+            const obs = document.getElementById('adm-obs').value.trim();
+            const sector = document.getElementById('adm-sector').value;
+            const photoInput = document.getElementById('adm-photo');
+
+            if (cats.some(c => c.chip === chip)) {
+                alert("Este Microchip já se encontra cadastrado!");
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('pt-BR');
+
+            const saveNewCat = (photoBase64 = null) => {
+                const newCat = {
+                    chip,
+                    name,
+                    age,
+                    status: sector,
+                    photo: photoBase64,
+                    history: [obs ? `${today}: Admissão - ${obs}` : `${today}: Admissão no setor ${sector}.`],
+                    medications: [],
+                    exams: [],
+                    movements: [{ from: "Admissão", to: sector, date: today }],
+                    updatedAt: today
+                };
+
+                saveCatToSupabase(newCat);
+                document.getElementById('form-admissao').reset();
+                alert(`${name} admitido com sucesso no setor ${sector}!`);
+            };
+
+            if (photoInput.files && photoInput.files[0]) {
+                compressAndResizeImage(photoInput.files[0], saveNewCat);
+            } else {
+                saveNewCat(null);
+            }
+        }
+
+        // ==========================================
+        // FLUXO DE INTERFACE DO SISTEMA
+        // ==========================================
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
@@ -708,8 +926,7 @@
 
             document.getElementById(`tab-${tabId}`).classList.add('active');
 
-            // Limpa o campo de busca quando sai/entra na aba de busca
-            if (tabId === 'buscar') {
+            if (tabId === 'pesquisar') {
                 document.getElementById('search-input').value = '';
                 searchCats();
             }
@@ -753,6 +970,13 @@
             renderMovementsTable();
         }
 
+        function getAvatarHTML(photoBase64) {
+            if (photoBase64) {
+                return `<img src="${photoBase64}" class="table-avatar" alt="Foto">`;
+            }
+            return `<div class="table-avatar-placeholder">🐱</div>`;
+        }
+
         function renderInternmentTables() {
             const ctiBody = document.getElementById('table-cti-body');
             const gatilBody = document.getElementById('table-gatil-body');
@@ -762,9 +986,14 @@
 
             cats.forEach(cat => {
                 const tr = document.createElement('tr');
+                const avatar = getAvatarHTML(cat.photo);
+                
                 tr.innerHTML = `
+                    <td>
+                        ${avatar}
+                        <span class="clickable-link" onclick="openPatientProfileDirectly('${cat.chip}')">${cat.name}</span>
+                    </td>
                     <td><strong>${cat.chip}</strong></td>
-                    <td><span class="clickable-link" onclick="openPatientProfileDirectly('${cat.chip}')">${cat.name}</span></td>
                     <td>${cat.age || 'Não informada'}</td>
                     <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
                     <td>
@@ -786,39 +1015,6 @@
             return 'badge-obito';
         }
 
-        function admitPatient(event) {
-            event.preventDefault();
-            const chip = document.getElementById('adm-chip').value.trim();
-            const name = document.getElementById('adm-name').value.trim();
-            const age = document.getElementById('adm-age').value.trim();
-            const obs = document.getElementById('adm-obs').value.trim();
-            const sector = document.getElementById('adm-sector').value;
-
-            if (cats.some(c => c.chip === chip)) {
-                alert("Este Microchip já se encontra cadastrado!");
-                return;
-            }
-
-            const today = new Date().toLocaleDateString('pt-BR');
-            const newCat = {
-                chip,
-                name,
-                age,
-                status: sector,
-                history: [obs ? `${today}: Admissão - ${obs}` : `${today}: Admissão no setor ${sector}.`],
-                medications: [],
-                exams: [],
-                movements: [{ from: "Admissão", to: sector, date: today }],
-                updatedAt: today
-            };
-
-            cats.push(newCat);
-            saveCats();
-            document.getElementById('form-admissao').reset();
-            alert(`${name} admitido com sucesso no setor ${sector}!`);
-        }
-
-        // NOVO: Função de busca em tempo real
         function searchCats() {
             const query = document.getElementById('search-input').value.toLowerCase().trim();
             const body = document.getElementById('table-search-body');
@@ -841,9 +1037,13 @@
 
             filtered.forEach(cat => {
                 const tr = document.createElement('tr');
+                const avatar = getAvatarHTML(cat.photo);
                 tr.innerHTML = `
+                    <td>
+                        ${avatar}
+                        <span class="clickable-link" onclick="openPatientProfileDirectly('${cat.chip}')">${cat.name}</span>
+                    </td>
                     <td><strong>${cat.chip}</strong></td>
-                    <td><span class="clickable-link" onclick="openPatientProfileDirectly('${cat.chip}')">${cat.name}</span></td>
                     <td>${cat.age || 'Não informada'}</td>
                     <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
                     <td>${cat.updatedAt || 'Sem data'}</td>
@@ -865,9 +1065,11 @@
             cat.medications = cat.medications || [];
             cat.medications.push({ name, freq, period });
             cat.updatedAt = new Date().toLocaleDateString('pt-BR');
+            
+            cat.history = cat.history || [];
             cat.history.push(`${cat.updatedAt}: Prescrito ${name} (${freq} - Período: ${period})`);
             
-            saveCats();
+            saveCatToSupabase(cat);
             document.getElementById('form-med').reset();
             alert(`Medicamento prescrito com sucesso para ${cat.name}!`);
         }
@@ -885,7 +1087,7 @@
                         <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
                         <td>${med.name}</td>
                         <td>${med.freq}</td>
-                        <td>${med.period || med.duration || 'Não informado'}</td>
+                        <td>${med.period || 'Não informado'}</td>
                         <td>
                             <button onclick="removeMedication('${cat.chip}', ${index})" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-weight:bold;">Suspender</button>
                         </td>
@@ -901,7 +1103,7 @@
                 const removed = cat.medications.splice(index, 1)[0];
                 cat.updatedAt = new Date().toLocaleDateString('pt-BR');
                 cat.history.push(`${cat.updatedAt}: Suspenso medicamento ${removed.name}.`);
-                saveCats();
+                saveCatToSupabase(cat);
             }
         }
 
@@ -925,18 +1127,18 @@
                     pdf: pdfBase64 
                 });
                 cat.updatedAt = today;
+                cat.history = cat.history || [];
                 cat.history.push(`${today}: Realizado exame ${type}. Resultado: ${result}${pdfBase64 ? ' (Laudo PDF Anexado)' : ''}`);
 
-                saveCats();
+                saveCatToSupabase(cat);
                 document.getElementById('form-exam').reset();
                 alert(`Exame registrado com sucesso!`);
             };
 
-            // Se o usuário selecionou um PDF, converte para Base64 antes de salvar
             if (pdfInput.files && pdfInput.files[0]) {
                 const file = pdfInput.files[0];
-                if (file.size > 1.5 * 1024 * 1024) { // Limite preventivo de 1.5MB por PDF para não estourar a memória local
-                    alert("Atenção: O PDF selecionado é muito grande! Escolha um arquivo menor que 1.5MB para não sobrecarregar o banco de dados local.");
+                if (file.size > 800 * 1024) { // Limite preventivo ideal para base de dados Supabase
+                    alert("Atenção: O PDF selecionado é muito grande! Escolha um arquivo menor que 800KB.");
                     return;
                 }
                 const reader = new FileReader();
@@ -975,7 +1177,6 @@
             });
         }
 
-        // Abre o PDF anexado em uma nova janela/aba do navegador
         function viewExamPDF(base64Data) {
             const newWindow = window.open();
             if (newWindow) {
@@ -1018,9 +1219,10 @@
             cat.updatedAt = today;
             cat.movements = cat.movements || [];
             cat.movements.push({ from, to: dest, date: today });
+            cat.history = cat.history || [];
             cat.history.push(`${today}: Transferência de setor de ${from} para ${dest}.`);
 
-            saveCats();
+            saveCatToSupabase(cat);
             document.getElementById('form-move').reset();
             document.getElementById('move-current-sector').value = '';
             alert(`${cat.name} transferido com sucesso!`);
@@ -1073,6 +1275,17 @@
             document.getElementById('prof-chip').innerText = cat.chip;
             document.getElementById('prof-age').innerText = cat.age || 'Não informada';
             
+            const imgEl = document.getElementById('prof-photo');
+            const placeholderEl = document.getElementById('prof-photo-placeholder');
+            if (cat.photo) {
+                imgEl.src = cat.photo;
+                imgEl.style.display = 'block';
+                placeholderEl.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                placeholderEl.style.display = 'inline-flex';
+            }
+
             const badge = document.getElementById('prof-badge');
             badge.innerText = cat.status;
             badge.className = `badge-status ${getStatusClass(cat.status)}`;
@@ -1089,7 +1302,7 @@
             const medications = cat.medications || [];
             medsDiv.innerHTML = medications.map(m => `
                 <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
-                    <strong>${m.name}</strong> - ${m.freq} (${m.period || m.duration || 'Não informado'})
+                    <strong>${m.name}</strong> - ${m.freq} (${m.period || 'Não informado'})
                 </div>
             `).join('') || 'Nenhum tratamento ativo cadastrado.';
 
@@ -1133,15 +1346,11 @@
                 cat.history.push(`${today}: ${text}`);
                 cat.updatedAt = today;
                 
-                saveCats();
+                saveCatToSupabase(cat);
                 input.value = '';
                 loadIndividualPatientProfile();
             }
         }
-
-        // Inicializa com persistência aprimorada
-        requestPersistentStorage();
-        loadCats();
     </script>
 </body>
 </html>
