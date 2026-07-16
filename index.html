@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FelisHub | Gestão de Abrigos</title>
+    <title>FelisHub | Gestão na Nuvem</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary-color: #ff8a5c;
@@ -146,27 +147,6 @@
             font-size: 0.95rem;
         }
 
-        /* Customização para barra de pesquisa */
-        .search-container {
-            margin: 20px 0 10px 0;
-            position: relative;
-        }
-        
-        .search-input {
-            padding: 12px 12px 12px 40px;
-            border: 2px solid var(--primary-color);
-            background-color: #ffffff;
-            font-weight: 500;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 13px;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
         button.btn-submit {
             background-color: var(--primary-color);
             color: #ffffff;
@@ -277,7 +257,6 @@
 </head>
 <body>
 
-    <!-- Sidebar de Navegação -->
     <aside>
         <div>
             <h1>🐱 FelisHub</h1>
@@ -295,10 +274,8 @@
         </div>
     </aside>
 
-    <!-- Conteúdo Principal -->
     <main>
         
-        <!-- 1. ABA INTERNAÇÃO -->
         <div id="tab-internacao" class="section active">
             <h2>🏥 Unidade de Internação e Triagem</h2>
             <p>Admitir e gerenciar leitos ativos no CTI e alojamentos comuns no Gatil.</p>
@@ -366,7 +343,6 @@
             </table>
         </div>
 
-        <!-- 2. ABA MEDICAÇÕES -->
         <div id="tab-medicacoes" class="section">
             <h2>💊 Prescrições e Registro de Medicações</h2>
             <p>Prescreva novos medicamentos ou controle os tratamentos ativos em andamento.</p>
@@ -416,7 +392,6 @@
             </table>
         </div>
 
-        <!-- 3. ABA EXAMES -->
         <div id="tab-exames" class="section">
             <h2>🧪 Histórico de Exames Laboratoriais</h2>
             <p>Registre exames realizados pelos pacientes para manter o acompanhamento clínico em dia.</p>
@@ -456,7 +431,6 @@
             </table>
         </div>
 
-        <!-- 4. ABA MOVIMENTAÇÕES DE SALA -->
         <div id="tab-movimentacoes" class="section">
             <h2>🔄 Registro de Movimentações de Sala (CTI/Gatil)</h2>
             <p>Monitore a rotatividade e histórico de mudanças de setor dos pacientes dentro do abrigo.</p>
@@ -500,7 +474,6 @@
             </table>
         </div>
 
-        <!-- 5. ABA PRONTUÁRIO INDIVIDUAL -->
         <div id="tab-prontuarios" class="section">
             <h2>📋 Prontuário Clínico Individual</h2>
             <p>Selecione um paciente para carregar a sua ficha médica integrada de forma consolidada.</p>
@@ -512,7 +485,6 @@
                 </select>
             </div>
 
-            <!-- Ficha médica consolidada -->
             <div id="individual-profile-card" style="display: none;">
                 <div class="record-section" style="border-left: 5px solid var(--primary-color);">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -527,7 +499,6 @@
                 </div>
 
                 <div class="grid-3" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <!-- Histórico e Evolução -->
                     <div class="record-section">
                         <h4>📋 Evoluções Clínicas</h4>
                         <div id="prof-history" style="max-height: 250px; overflow-y: auto; background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
@@ -538,7 +509,6 @@
                         </div>
                     </div>
 
-                    <!-- Prescrições do Gato -->
                     <div class="record-section">
                         <h4>💊 Tratamentos e Receitas</h4>
                         <div id="prof-meds" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 12px;"></div>
@@ -547,13 +517,11 @@
                 </div>
 
                 <div class="grid-3" style="grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-                    <!-- Exames do Gato -->
                     <div class="record-section">
                         <h4>🧪 Laudo de Exames</h4>
                         <div id="prof-exams" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;"></div>
                     </div>
 
-                    <!-- Movimentações do Gato -->
                     <div class="record-section">
                         <h4>🔄 Movimentações de Setor</h4>
                         <div id="prof-moves" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;"></div>
@@ -564,73 +532,50 @@
 
     </main>
 
-    <!-- JavaScript - Inteligência do Sistema com Validador de Salvamento -->
     <script>
-        // BANCO DE DADOS LOCAL PERMANENTE
+        // ================= CONFIGURAÇÃO DO SUPABASE =================
+        // Rennan, substitua os valores abaixo com as credenciais do seu projeto do Supabase!
+        const SUPABASE_URL = "https://SEU_PROJETO.supabase.co";
+        const SUPABASE_KEY = "SUA_API_KEY_ANON_PUBLIC";
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let cats = [];
 
-        // Tentativa de carregar dados do LocalStorage com tratamento de erros
-        try {
-            const savedData = localStorage.getItem('felishub_database');
-            if (savedData) {
-                cats = JSON.parse(savedData);
-            }
-        } catch (e) {
-            console.warn("Não foi possível acessar o localStorage do navegador para leitura:", e);
-        }
-
-        // Caso o banco esteja vazio ou bloqueado, carrega os dados padrão de demonstração
-        if (!cats || cats.length === 0) {
-            cats = [
-                {
-                    chip: "981020001425112",
-                    name: "Mingau",
-                    age: "3 anos",
-                    status: "CTI",
-                    history: [
-                        "10/05/2026: Admitido no CTI com sintomas agudos de desidratação e obstrução urinária[cite: 1].",
-                        "11/05/2026: Procedimento de desobstrução realizado com sucesso[cite: 1]."
-                    ],
-                    medications: [
-                        { name: "Cerenia 10mg/ml (0,3 ml)", freq: "24h/24h", duration: "3 dias"[cite: 1] },
-                        { name: "Soro Ringer Lactato (150 ml)", freq: "Contínuo", duration: "Sob avaliação"[cite: 1] }
-                    ],
-                    exams: [
-                        { type: "FIV/FeLV Rapid Test", result: "Não reagente", date: "10/05/2026" },
-                        { type: "Hemograma", result: "Anemia leve sob acompanhamento", date: "14/05/2026" }
-                    ],
-                    movements: [
-                        { from: "Admissão", to: "CTI", date: "10/05/2026" }
-                    ],
-                    updatedAt: "14/05/2026"
-                },
-                {
-                    chip: "981020001990223",
-                    name: "Mel",
-                    age: "1 ano",
-                    status: "Gatil",
-                    history: [
-                        "12/05/2026: Castrada e microchipada[cite: 1]."
-                    ],
-                    medications: [],
-                    exams: [],
-                    movements: [
-                        { from: "Admissão", to: "Gatil", date: "12/05/2026" }
-                    ],
-                    updatedAt: "12/05/2026"
-                }
-            ];
-        }
-
-        let selectedCatChip = null;
-
-        // Função de Salvamento com Alerta Visível caso o Navegador esteja bloqueando
-        function saveToStorage() {
+        // Carrega dados da nuvem ao iniciar
+        async function loadCatsFromDatabase() {
             try {
-                localStorage.setItem('felishub_database', JSON.stringify(cats));
-            } catch (e) {
-                alert("⚠️ ATENÇÃO: Seu navegador ou celular está bloqueando o salvamento automático de dados! Certifique-se de que não está usando uma Aba Anônima ou de que as configurações de cookies do seu navegador estão ativadas para este site.");
-                console.error("Erro ao salvar no localStorage:", e);
+                const { data, error } = await supabase.from('cats').select('*');
+                if (error) throw error;
+                cats = data || [];
+                populateCatDropdowns();
+                renderAllTables();
+            } catch (err) {
+                console.error("Erro ao puxar dados da nuvem:", err);
+            }
+        }
+
+        // Envia as atualizações do banco local para a nuvem
+        async function updateCatOnDatabase(cat) {
+            try {
+                const { error } = await supabase
+                    .from('cats')
+                    .upsert({
+                        chip: cat.chip,
+                        name: cat.name,
+                        age: cat.age,
+                        status: cat.status,
+                        history: cat.history,
+                        medications: cat.medications,
+                        exams: cat.exams,
+                        movements: cat.movements,
+                        updated_at: cat.updatedAt
+                    }, { onConflict: 'chip' });
+                
+                if (error) throw error;
+                await loadCatsFromDatabase();
+            } catch (err) {
+                alert("Erro ao salvar dados na nuvem: " + err.message);
             }
         }
 
@@ -643,12 +588,10 @@
 
             document.getElementById(`tab-${tabId}`).classList.add('active');
 
-            // Atualiza os componentes ao trocar de aba
             populateCatDropdowns();
             renderAllTables();
         }
 
-        // Popula todas as tags de select (Gato) com os dados atuais
         function populateCatDropdowns() {
             const dropdowns = [
                 'med-cat-select', 
@@ -661,7 +604,7 @@
                 const el = document.getElementById(id);
                 if (!el) return;
                 
-                const savedVal = el.value; // Salva o valor selecionado antes de recriar
+                const savedVal = el.value;
                 el.innerHTML = id === 'patient-search-select' 
                     ? '<option value="">-- Escolha um Paciente --</option>' 
                     : '<option value="">-- Selecione o Paciente --</option>';
@@ -684,7 +627,6 @@
             renderMovementsTable();
         }
 
-        // Renderiza as tabelas da aba de Internação
         function renderInternmentTables() {
             const ctiBody = document.getElementById('table-cti-body');
             const gatilBody = document.getElementById('table-gatil-body');
@@ -718,8 +660,7 @@
             return 'badge-obito';
         }
 
-        // Cadastro de nova admissão
-        function admitPatient(event) {
+        async function admitPatient(event) {
             event.preventDefault();
             const chip = document.getElementById('adm-chip').value.trim();
             const name = document.getElementById('adm-name').value.trim();
@@ -745,16 +686,12 @@
                 updatedAt: today
             };
 
-            cats.push(newCat);
-            saveToStorage();
+            await updateCatOnDatabase(newCat);
             document.getElementById('form-admissao').reset();
-            populateCatDropdowns();
-            renderInternmentTables();
             alert(`${name} admitido com sucesso no setor ${sector}!`);
         }
 
-        // Aba de Medicações
-        function prescribeMedication(event) {
+        async function prescribeMedication(event) {
             event.preventDefault();
             const chip = document.getElementById('med-cat-select').value;
             const name = document.getElementById('med-name').value.trim();
@@ -762,18 +699,14 @@
             const duration = document.getElementById('med-duration').value.trim() || 'Contínuo';
 
             const cat = cats.find(c => c.chip === chip);
-            if (!cat) {
-                alert("Selecione um paciente válido!");
-                return;
-            }
+            if (!cat) return;
 
             cat.medications.push({ name, freq, duration });
             cat.updatedAt = new Date().toLocaleDateString('pt-BR');
             cat.history.push(`${cat.updatedAt}: Prescrito ${name} (${freq} - ${duration})`);
             
-            saveToStorage();
+            await updateCatOnDatabase(cat);
             document.getElementById('form-med').reset();
-            renderMedicationTable();
             alert(`Medicamento prescrito com sucesso para ${cat.name}!`);
         }
 
@@ -782,7 +715,8 @@
             body.innerHTML = '';
 
             cats.forEach(cat => {
-                cat.medications.forEach((med, index) => {
+                const meds = cat.medications || [];
+                meds.forEach((med, index) => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><strong>${cat.name}</strong></td>
@@ -799,19 +733,17 @@
             });
         }
 
-        function removeMedication(chip, index) {
+        async function removeMedication(chip, index) {
             const cat = cats.find(c => c.chip === chip);
             if (cat) {
                 const removed = cat.medications.splice(index, 1)[0];
                 cat.updatedAt = new Date().toLocaleDateString('pt-BR');
                 cat.history.push(`${cat.updatedAt}: Suspenso medicamento ${removed.name}.`);
-                saveToStorage();
-                renderMedicationTable();
+                await updateCatOnDatabase(cat);
             }
         }
 
-        // Aba de Exames
-        function recordExam(event) {
+        async function recordExam(event) {
             event.preventDefault();
             const chip = document.getElementById('exam-cat-select').value;
             const type = document.getElementById('exam-type').value.trim();
@@ -819,19 +751,16 @@
             const today = new Date().toLocaleDateString('pt-BR');
 
             const cat = cats.find(c => c.chip === chip);
-            if (!cat) {
-                alert("Selecione um paciente!");
-                return;
-            }
+            if (!cat) return;
 
+            cat.exams = cat.exams || [];
             cat.exams.push({ type, result, date: today });
             cat.updatedAt = today;
             cat.history.push(`${today}: Realizado exame ${type}. Resultado: ${result}`);
 
-            saveToStorage();
+            await updateCatOnDatabase(cat);
             document.getElementById('form-exam').reset();
-            renderExamsTable();
-            alert(`Exame registrado com sucesso no prontuário de ${cat.name}!`);
+            alert(`Exame registrado com sucesso!`);
         }
 
         function renderExamsTable() {
@@ -839,7 +768,8 @@
             body.innerHTML = '';
 
             cats.forEach(cat => {
-                cat.exams.forEach(exam => {
+                const exams = cat.exams || [];
+                exams.forEach(exam => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${exam.date}</td>
@@ -852,7 +782,6 @@
             });
         }
 
-        // Aba de Movimentações
         function updateCurrentSectorLabel() {
             const chip = document.getElementById('move-cat-select').value;
             const label = document.getElementById('move-current-sector');
@@ -860,7 +789,7 @@
             label.value = cat ? cat.status : '';
         }
 
-        function moveRoom(event) {
+        async function moveRoom(event) {
             event.preventDefault();
             const chip = document.getElementById('move-cat-select').value;
             const dest = document.getElementById('move-dest-sector').value;
@@ -877,13 +806,13 @@
             const from = cat.status;
             cat.status = dest;
             cat.updatedAt = today;
+            cat.movements = cat.movements || [];
             cat.movements.push({ from, to: dest, date: today });
             cat.history.push(`${today}: Transferência de setor de ${from} para ${dest}.`);
 
-            saveToStorage();
+            await updateCatOnDatabase(cat);
             document.getElementById('form-move').reset();
             document.getElementById('move-current-sector').value = '';
-            renderMovementsTable();
             alert(`${cat.name} transferido com sucesso!`);
         }
 
@@ -892,7 +821,8 @@
             body.innerHTML = '';
 
             cats.forEach(cat => {
-                cat.movements.forEach(m => {
+                const movements = cat.movements || [];
+                movements.forEach(m => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${m.date}</td>
@@ -911,7 +841,6 @@
             updateCurrentSectorLabel();
         }
 
-        // Aba Prontuário Clínico Individual
         function openPatientProfileDirectly(chip) {
             switchTab('prontuarios');
             document.getElementById('patient-search-select').value = chip;
@@ -930,7 +859,6 @@
             const cat = cats.find(c => c.chip === chip);
             if (!cat) return;
 
-            // Dados Cadastrais
             document.getElementById('prof-name').innerText = cat.name;
             document.getElementById('prof-chip').innerText = cat.chip;
             document.getElementById('prof-age').innerText = cat.age || 'Não informada';
@@ -939,34 +867,34 @@
             badge.innerText = cat.status;
             badge.className = `badge-status ${getStatusClass(cat.status)}`;
 
-            // Histórico de Evolução
             const historyDiv = document.getElementById('prof-history');
-            historyDiv.innerHTML = cat.history.map(h => `
+            const history = cat.history || [];
+            historyDiv.innerHTML = history.map(h => `
                 <div style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">
                     ${h}
                 </div>
             `).reverse().join('') || 'Sem evoluções registradas.';
 
-            // Prescrições Ativas
             const medsDiv = document.getElementById('prof-meds');
-            medsDiv.innerHTML = cat.medications.map(m => `
+            const medications = cat.medications || [];
+            medsDiv.innerHTML = medications.map(m => `
                 <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
                     <strong>${m.name}</strong> - ${m.freq} (${m.duration})
                 </div>
             `).join('') || 'Nenhum tratamento ativo cadastrado.';
 
-            // Exames Realizados
             const examsDiv = document.getElementById('prof-exams');
-            examsDiv.innerHTML = cat.exams.map(e => `
+            const exams = cat.exams || [];
+            examsDiv.innerHTML = exams.map(e => `
                 <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
                     <small style="color:#64748b;">${e.date}</small><br>
                     <strong>${e.type}</strong>: ${e.result}
                 </div>
             `).reverse().join('') || 'Nenhum exame clínico anexado.';
 
-            // Movimentações
             const movesDiv = document.getElementById('prof-moves');
-            movesDiv.innerHTML = cat.movements.map(m => `
+            const movements = cat.movements || [];
+            movesDiv.innerHTML = movements.map(m => `
                 <div style="margin-bottom: 6px; font-size: 0.85rem;">
                     📅 ${m.date}: De ${m.from} para <strong>${m.to}</strong>
                 </div>
@@ -975,7 +903,7 @@
             card.style.display = 'block';
         }
 
-        function addProfileEvolution() {
+        async function addProfileEvolution() {
             const input = document.getElementById('prof-new-evolution');
             const text = input.value.trim();
             if (!text) return;
@@ -984,18 +912,18 @@
             const cat = cats.find(c => c.chip === chip);
             if (cat) {
                 const today = new Date().toLocaleDateString('pt-BR');
+                cat.history = cat.history || [];
                 cat.history.push(`${today}: ${text}`);
                 cat.updatedAt = today;
-                saveToStorage();
+                
+                await updateCatOnDatabase(cat);
                 input.value = '';
                 loadIndividualPatientProfile();
-                renderAllTables();
             }
         }
 
-        // Inicialização
-        populateCatDropdowns();
-        renderAllTables();
+        // Inicializa o app baixando os dados da Nuvem
+        loadCatsFromDatabase();
     </script>
 </body>
 </html>
