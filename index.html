@@ -564,74 +564,51 @@
 
     </main>
 
-    <!-- JavaScript - Inteligência do Sistema com Validador de Salvamento -->
+    <!-- JavaScript - Inteligência do Sistema -->
     <script>
         // BANCO DE DADOS LOCAL PERMANENTE
-        let cats = [];
-
-        // Tentativa de carregar dados do LocalStorage com tratamento de erros
-        try {
-            const savedData = localStorage.getItem('felishub_database');
-            if (savedData) {
-                cats = JSON.parse(savedData);
+        let cats = JSON.parse(localStorage.getItem('felishub_database')) || [
+            {
+                chip: "981020001425112",
+                name: "Mingau",
+                age: "3 anos",
+                status: "CTI",
+                history: [
+                    "Admitido no CTI com sintomas agudos de desidratação e obstrução urinária[cite: 1].",
+                    "Procedimento de desobstrução realizado com sucesso[cite: 1]."
+                ],
+                medications: [
+                    { name: "Cerenia 10mg/ml (0,3 ml)", freq: "24h/24h", duration: "3 dias"[cite: 1] },
+                    { name: "Soro Ringer Lactato (150 ml)", freq: "Contínuo", duration: "Sob avaliação"[cite: 1] }
+                ],
+                exams: [
+                    { type: "FIV/FeLV Rapid Test", result: "Não reagente", date: "10/05/2026" },
+                    { type: "Hemograma", result: "Anemia leve sob acompanhamento", date: "14/05/2026" }
+                ],
+                movements: [
+                    { from: "Admissão", to: "CTI", date: "10/05/2026" }
+                ],
+                updatedAt: "14/05/2026"
+            },
+            {
+                chip: "981020001990223",
+                name: "Mel",
+                age: "1 ano",
+                status: "Gatil",
+                history: [
+                    "Castrada e microchipada[cite: 1]."
+                ],
+                medications: [],
+                exams: [],
+                movements: [
+                    { from: "Admissão", to: "Gatil", date: "12/05/2026" }
+                ],
+                updatedAt: "12/05/2026"
             }
-        } catch (e) {
-            console.warn("Não foi possível acessar o localStorage do navegador para leitura:", e);
-        }
+        ];
 
-        // Caso o banco esteja vazio ou bloqueado, carrega os dados padrão de demonstração
-        if (!cats || cats.length === 0) {
-            cats = [
-                {
-                    chip: "981020001425112",
-                    name: "Mingau",
-                    age: "3 anos",
-                    status: "CTI",
-                    history: [
-                        "10/05/2026: Admitido no CTI com sintomas agudos de desidratação e obstrução urinária[cite: 1].",
-                        "11/05/2026: Procedimento de desobstrução realizado com sucesso[cite: 1]."
-                    ],
-                    medications: [
-                        { name: "Cerenia 10mg/ml (0,3 ml)", freq: "24h/24h", duration: "3 dias"[cite: 1] },
-                        { name: "Soro Ringer Lactato (150 ml)", freq: "Contínuo", duration: "Sob avaliação"[cite: 1] }
-                    ],
-                    exams: [
-                        { type: "FIV/FeLV Rapid Test", result: "Não reagente", date: "10/05/2026" },
-                        { type: "Hemograma", result: "Anemia leve sob acompanhamento", date: "14/05/2026" }
-                    ],
-                    movements: [
-                        { from: "Admissão", to: "CTI", date: "10/05/2026" }
-                    ],
-                    updatedAt: "14/05/2026"
-                },
-                {
-                    chip: "981020001990223",
-                    name: "Mel",
-                    age: "1 ano",
-                    status: "Gatil",
-                    history: [
-                        "12/05/2026: Castrada e microchipada[cite: 1]."
-                    ],
-                    medications: [],
-                    exams: [],
-                    movements: [
-                        { from: "Admissão", to: "Gatil", date: "12/05/2026" }
-                    ],
-                    updatedAt: "12/05/2026"
-                }
-            ];
-        }
-
-        let selectedCatChip = null;
-
-        // Função de Salvamento com Alerta Visível caso o Navegador esteja bloqueando
         function saveToStorage() {
-            try {
-                localStorage.setItem('felishub_database', JSON.stringify(cats));
-            } catch (e) {
-                alert("⚠️ ATENÇÃO: Seu navegador ou celular está bloqueando o salvamento automático de dados! Certifique-se de que não está usando uma Aba Anônima ou de que as configurações de cookies do seu navegador estão ativadas para este site.");
-                console.error("Erro ao salvar no localStorage:", e);
-            }
+            localStorage.setItem('felishub_database', JSON.stringify(cats));
         }
 
         function switchTab(tabId) {
