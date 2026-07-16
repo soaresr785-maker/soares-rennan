@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FelisHub | Gestão de Abrigos</title>
-    <!-- SDK do Supabase via CDN -->
+    <title>Fazenda Modelo | Gatil/CTI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Bibliotecas de Animação e Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <style>
@@ -453,7 +451,6 @@
 </head>
 <body>
 
-    <!-- Sidebar de Navegação Simplificada -->
     <aside id="app-sidebar">
         <div>
             <h1>🐱 FelisHub</h1>
@@ -477,10 +474,8 @@
         </div>
     </aside>
 
-    <!-- Conteúdo Principal -->
     <main id="app-main">
         
-        <!-- 1. ABA GATIL -->
         <div id="tab-gatil" class="section active">
             <div class="search-bar-container">
                 <div class="search-input-wrapper">
@@ -490,11 +485,9 @@
             </div>
             
             <div class="cats-grid" id="grid-gatil">
-                <!-- Injetado dinamicamente -->
-            </div>
+                </div>
         </div>
 
-        <!-- 2. ABA CTI -->
         <div id="tab-cti" class="section">
             <div class="search-bar-container">
                 <div class="search-input-wrapper">
@@ -504,13 +497,11 @@
             </div>
 
             <div class="cats-grid" id="grid-cti">
-                <!-- Injetado dinamicamente -->
-            </div>
+                </div>
         </div>
 
     </main>
 
-    <!-- MODAL 1: CADASTRO / ADMISSÃO DE GATO -->
     <div class="modal" id="modal-admissao">
         <div class="modal-content animate__animated animate__zoomIn">
             <button class="close-modal" onclick="closeAdmitModal()"><i class="fa-solid fa-xmark"></i></button>
@@ -556,12 +547,10 @@
         </div>
     </div>
 
-    <!-- MODAL 2: PRONTUÁRIO INDIVIDUAL COMPLETO -->
     <div class="modal" id="modal-prontuario">
         <div class="modal-content animate__animated animate__zoomIn" style="max-width: 900px;">
             <button class="close-modal" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></button>
             
-            <!-- Cabeçalho com dados e Avatar -->
             <div class="profile-header">
                 <div id="prof-avatar-container"></div>
                 <div>
@@ -576,15 +565,12 @@
                 </div>
             </div>
 
-            <!-- Corpo em Duas Colunas -->
             <div class="profile-columns">
                 
-                <!-- Coluna Esquerda: Histórico e Evoluções -->
                 <div class="profile-block">
                     <h4><i class="fa-solid fa-clock-rotate-left"></i> Histórico / Linha do Tempo</h4>
                     <div id="prof-history-list" style="max-height: 220px; overflow-y: auto; margin-bottom: 15px; padding-right:5px;">
-                        <!-- Injetado dinamicamente -->
-                    </div>
+                        </div>
                     <div>
                         <textarea id="prof-new-evolution" rows="2" placeholder="Digitar nova evolução clínica..." style="margin-bottom: 10px; font-size: 0.85rem;"></textarea>
                         <button class="btn-submit" onclick="addProfileEvolution()" style="font-size:0.85rem; padding:8px 16px;">
@@ -593,12 +579,10 @@
                     </div>
                 </div>
 
-                <!-- Coluna Direita: Medicações Prescritas -->
                 <div class="profile-block">
                     <h4><i class="fa-solid fa-pills" style="color:var(--primary-color)"></i> Tratamentos e Medicações</h4>
                     <div id="prof-meds-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;">
-                        <!-- Injetado dinamicamente -->
-                    </div>
+                        </div>
                     <div style="border-top:1px solid var(--border-color); padding-top:15px;">
                         <h5 style="margin:0 0 10px 0; color:#475569;">Prescrever Medicamento:</h5>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
@@ -614,7 +598,6 @@
 
             </div>
 
-            <!-- Rodapé com Ações Clínicas Rápidas (Movimentação, Óbito, Alta) -->
             <div class="action-footer">
                 <span style="margin-right:auto; align-self:center; font-size:0.85rem; color:#64748b;">
                     Ações de Fluxo de Leito:
@@ -632,7 +615,6 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
     <script>
         // ==========================================
         // CONFIGURAÇÃO DO SUPABASE (INSIRA SEUS DADOS AQUI!)
@@ -656,41 +638,45 @@
         // LEITURA DOS DADOS (SUPABASE)
         // ==========================================
         async function fetchCatsData() {
-            const { data, error } = await supabaseClient
-                .from('cats')
-                .select('*')
-                .order('name', { ascending: true });
+            try {
+                const { data, error } = await supabaseClient
+                    .from('cats')
+                    .select('*')
+                    .order('name', { ascending: true });
 
-            if (error) {
-                console.error("Erro ao carregar os dados:", error);
-                return;
-            }
-
-            cats = data.map(item => ({
-                id: item.id,
-                chip: item.chip,
-                name: item.name,
-                age: item.age,
-                status: item.status,
-                photo: item.photo,
-                history: item.history || [],
-                medications: item.medications || [],
-                exams: item.exams || [],
-                movements: item.movements || [],
-                updatedAt: item.updated_at
-            }));
-
-            renderGrids();
-            
-            // Se o prontuário estiver aberto, recarrega a tela para atualizar as infos dele em tempo real
-            if (activeCat) {
-                const refreshed = cats.find(c => c.chip === activeCat.chip);
-                if (refreshed) {
-                    activeCat = refreshed;
-                    loadActiveCatProfile();
-                } else {
-                    closeProfileModal();
+                if (error) {
+                    console.error("Erro ao carregar os dados:", error);
+                    return;
                 }
+
+                cats = data.map(item => ({
+                    id: item.id,
+                    chip: item.chip,
+                    name: item.name,
+                    age: item.age,
+                    status: item.status,
+                    photo: item.photo,
+                    history: item.history || [],
+                    medications: item.medications || [],
+                    exams: item.exams || [],
+                    movements: item.movements || [],
+                    updatedAt: item.updated_at
+                }));
+
+                renderGrids();
+                
+                // Se o prontuário estiver aberto, recarrega a tela para atualizar as infos dele em tempo real
+                if (activeCat) {
+                    const refreshed = cats.find(c => c.chip === activeCat.chip);
+                    if (refreshed) {
+                        activeCat = refreshed;
+                        loadActiveCatProfile();
+                    } else {
+                        closeProfileModal();
+                    }
+                }
+            } catch (err) {
+                console.error("Falha na comunicação com Supabase:", err);
             }
         }
 
@@ -726,12 +712,12 @@
                     .from('cats')
                     .update(dbPayload)
                     .eq('id', catObj.id);
-                if (error) alert("Erro ao atualizar dados: " + error.message);
+                if (error) throw new Error("Erro ao atualizar dados: " + error.message);
             } else {
                 const { error } = await supabaseClient
                     .from('cats')
                     .insert([dbPayload]);
-                if (error) alert("Erro ao criar prontuário: " + error.message);
+                if (error) throw new Error("Erro ao criar prontuário: " + error.message);
             }
         }
 
@@ -884,9 +870,13 @@
             activeCat.history.push(`${today}: ${text}`);
             activeCat.updatedAt = today;
 
-            await saveCatToSupabase(activeCat);
-            input.value = '';
-            loadActiveCatProfile();
+            try {
+                await saveCatToSupabase(activeCat);
+                input.value = '';
+                loadActiveCatProfile();
+            } catch (err) {
+                alert(err.message + " | Verifique as permissões de gravação no banco.");
+            }
         }
 
         // Adicionar Medicação Direto no Perfil
@@ -908,12 +898,15 @@
             activeCat.history.push(`${today}: Prescrito ${name} (${freq} - Período: ${period})`);
             activeCat.updatedAt = today;
 
-            await saveCatToSupabase(activeCat);
-            
-            document.getElementById('new-med-name').value = '';
-            document.getElementById('new-med-freq').value = '';
-            document.getElementById('new-med-period').value = '';
-            loadActiveCatProfile();
+            try {
+                await saveCatToSupabase(activeCat);
+                document.getElementById('new-med-name').value = '';
+                document.getElementById('new-med-freq').value = '';
+                document.getElementById('new-med-period').value = '';
+                loadActiveCatProfile();
+            } catch (err) {
+                alert(err.message);
+            }
         }
 
         // Suspender Medicação
@@ -925,8 +918,12 @@
             activeCat.history.push(`${today}: Suspenso medicamento ${removed.name}.`);
             activeCat.updatedAt = today;
 
-            await saveCatToSupabase(activeCat);
-            loadActiveCatProfile();
+            try {
+                await saveCatToSupabase(activeCat);
+                loadActiveCatProfile();
+            } catch (err) {
+                alert(err.message);
+            }
         }
 
         // ==========================================
@@ -943,9 +940,13 @@
             activeCat.movements.push({ from: origin, to: dest, date: today });
             activeCat.history.push(`${today}: Transferência de setor de ${origin} para ${dest}.`);
 
-            await saveCatToSupabase(activeCat);
-            loadActiveCatProfile();
-            alert(`${activeCat.name} transferido para o ${dest}!`);
+            try {
+                await saveCatToSupabase(activeCat);
+                loadActiveCatProfile();
+                alert(`${activeCat.name} transferido para o ${dest}!`);
+            } catch (err) {
+                alert(err.message);
+            }
         }
 
         async function confirmDeath() {
@@ -959,9 +960,13 @@
                 activeCat.movements.push({ from: origin, to: 'Óbito', date: today });
                 activeCat.history.push(`${today}: Óbito confirmado no setor ${origin}.`);
 
-                await saveCatToSupabase(activeCat);
-                closeProfileModal();
-                alert(`Óbito do gatinho ${activeCat.name} registrado.`);
+                try {
+                    await saveCatToSupabase(activeCat);
+                    closeProfileModal();
+                    alert(`Óbito do gatinho ${activeCat.name} registrado.`);
+                } catch (err) {
+                    alert(err.message);
+                }
             }
         }
 
@@ -976,9 +981,13 @@
                 activeCat.movements.push({ from: origin, to: 'Alta', date: today });
                 activeCat.history.push(`${today}: Paciente recebeu alta ou foi adotado saindo do setor ${origin}.`);
 
-                await saveCatToSupabase(activeCat);
-                closeProfileModal();
-                alert(`Alta realizada com sucesso para ${activeCat.name}!`);
+                try {
+                    await saveCatToSupabase(activeCat);
+                    closeProfileModal();
+                    alert(`Alta realizada com sucesso para ${activeCat.name}!`);
+                } catch (err) {
+                    alert(err.message);
+                }
             }
         }
 
@@ -1024,7 +1033,7 @@
             event.preventDefault();
             const btn = document.getElementById('btn-admitir');
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = `<i class="fa-solid fa-circle-notch spinner"></i> Carregando...`;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch spinner"></i> Gravando...`;
 
             const chip = document.getElementById('adm-chip').value.trim();
             const name = document.getElementById('adm-name').value.trim();
@@ -1055,10 +1064,15 @@
                     updatedAt: today
                 };
 
-                await saveCatToSupabase(newCat);
-                btn.innerHTML = originalHTML;
-                closeAdmitModal();
-                alert(`${name} admitido com sucesso no ${sector}!`);
+                try {
+                    await saveCatToSupabase(newCat);
+                    closeAdmitModal();
+                    alert(`${name} admitido com sucesso no ${sector}!`);
+                } catch (err) {
+                    alert("Erro ao admitir gatinho: " + err.message + "\n\nDica: Verifique se as regras de RLS (Row Level Security) estão habilitadas para gravação anônima na tabela 'cats' no seu Supabase.");
+                } finally {
+                    btn.innerHTML = originalHTML;
+                }
             };
 
             if (photoInput.files && photoInput.files[0]) {
