@@ -165,6 +165,12 @@
             font-size: 0.95rem;
         }
 
+        /* Estilo para upload de arquivo */
+        input[type="file"] {
+            padding: 8px;
+            background-color: #ffffff;
+        }
+
         button.btn-submit {
             background-color: var(--primary-color);
             color: #ffffff;
@@ -213,6 +219,23 @@
             text-decoration: underline;
             cursor: pointer;
             font-weight: bold;
+        }
+
+        .btn-view-pdf {
+            display: inline-block;
+            background-color: #e2e8f0;
+            color: #334155;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+        }
+
+        .btn-view-pdf:hover {
+            background-color: #cbd5e1;
         }
 
         /* Seções de Registro */
@@ -282,6 +305,7 @@
             <p class="subtitle">Gestão para Abrigos Felinos</p>
             <hr style="margin-bottom: 15px; border: 0; border-top: 1px solid var(--border-color);">
             <button class="tab-btn active" onclick="switchTab('internacao')">🏥 Internação</button>
+            <button class="tab-btn" onclick="switchTab('buscar')">🔍 Buscar Gatinho</button>
             <button class="tab-btn" onclick="switchTab('medicacoes')">💊 Medicações</button>
             <button class="tab-btn" onclick="switchTab('exames')">🧪 Exames Feitos</button>
             <button class="tab-btn" onclick="switchTab('movimentacoes')">🔄 Movimentações</button>
@@ -368,6 +392,36 @@
             </table>
         </div>
 
+        <div id="tab-buscar" class="section">
+            <h2>🔍 Buscar Gatinho no Banco de Dados</h2>
+            <p>Pesquise rapidamente por qualquer paciente utilizando o nome ou o número do microchip.</p>
+
+            <div class="record-section">
+                <div class="form-group">
+                    <label for="search-input">Digite o Nome ou Microchip do Gato:</label>
+                    <input type="text" id="search-input" onkeyup="searchCats()" placeholder="Comece a digitar para pesquisar em tempo real...">
+                </div>
+            </div>
+
+            <h3>Resultado da Busca</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Microchip</th>
+                        <th>Nome do Gato</th>
+                        <th>Idade</th>
+                        <th>Setor Atual</th>
+                        <th>Última Atualização</th>
+                    </tr>
+                </thead>
+                <tbody id="table-search-body">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #64748b;">Digite algo no campo acima para buscar...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <div id="tab-medicacoes" class="section">
             <h2>💊 Prescrições e Registro de Medicações</h2>
             <p>Prescreva novos medicamentos ou controle os tratamentos ativos em andamento.</p>
@@ -438,7 +492,15 @@
                             <input type="text" id="exam-result" required placeholder="Ex: Reagente para FeLV, Sem alterações na série vermelha">
                         </div>
                     </div>
-                    <button type="submit" class="btn-submit">Salvar Exame no Prontuário</button>
+                    <div class="grid-3" style="grid-template-columns: 2fr 1fr;">
+                        <div class="form-group">
+                            <label>Anexar Laudo (PDF) - Opcional</label>
+                            <input type="file" id="exam-pdf" accept="application/pdf">
+                        </div>
+                        <div class="form-group" style="align-self: end; margin-bottom: 16px;">
+                            <button type="submit" class="btn-submit" style="width: 100%;">Salvar Exame no Prontuário</button>
+                        </div>
+                    </div>
                 </form>
             </div>
 
@@ -450,6 +512,7 @@
                         <th>Paciente</th>
                         <th>Exame</th>
                         <th>Resultado</th>
+                        <th>Anexo</th>
                     </tr>
                 </thead>
                 <tbody id="table-exams-body"></tbody>
@@ -645,6 +708,12 @@
 
             document.getElementById(`tab-${tabId}`).classList.add('active');
 
+            // Limpa o campo de busca quando sai/entra na aba de busca
+            if (tabId === 'buscar') {
+                document.getElementById('search-input').value = '';
+                searchCats();
+            }
+
             populateCatDropdowns();
             renderAllTables();
         }
@@ -749,6 +818,40 @@
             alert(`${name} admitido com sucesso no setor ${sector}!`);
         }
 
+        // NOVO: Função de busca em tempo real
+        function searchCats() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const body = document.getElementById('table-search-body');
+            body.innerHTML = '';
+
+            if (cats.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">Nenhum gatinho cadastrado no sistema ainda.</td></tr>`;
+                return;
+            }
+
+            const filtered = cats.filter(cat => 
+                cat.name.toLowerCase().includes(query) || 
+                cat.chip.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">Nenhum resultado encontrado para "${query}".</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(cat => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${cat.chip}</strong></td>
+                    <td><span class="clickable-link" onclick="openPatientProfileDirectly('${cat.chip}')">${cat.name}</span></td>
+                    <td>${cat.age || 'Não informada'}</td>
+                    <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
+                    <td>${cat.updatedAt || 'Sem data'}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
         function prescribeMedication(event) {
             event.preventDefault();
             const chip = document.getElementById('med-cat-select').value;
@@ -807,19 +910,43 @@
             const chip = document.getElementById('exam-cat-select').value;
             const type = document.getElementById('exam-type').value.trim();
             const result = document.getElementById('exam-result').value.trim();
+            const pdfInput = document.getElementById('exam-pdf');
             const today = new Date().toLocaleDateString('pt-BR');
 
             const cat = cats.find(c => c.chip === chip);
             if (!cat) return;
 
-            cat.exams = cat.exams || [];
-            cat.exams.push({ type, result, date: today });
-            cat.updatedAt = today;
-            cat.history.push(`${today}: Realizado exame ${type}. Resultado: ${result}`);
+            const saveExamData = (pdfBase64 = null) => {
+                cat.exams = cat.exams || [];
+                cat.exams.push({ 
+                    type, 
+                    result, 
+                    date: today,
+                    pdf: pdfBase64 
+                });
+                cat.updatedAt = today;
+                cat.history.push(`${today}: Realizado exame ${type}. Resultado: ${result}${pdfBase64 ? ' (Laudo PDF Anexado)' : ''}`);
 
-            saveCats();
-            document.getElementById('form-exam').reset();
-            alert(`Exame registrado com sucesso!`);
+                saveCats();
+                document.getElementById('form-exam').reset();
+                alert(`Exame registrado com sucesso!`);
+            };
+
+            // Se o usuário selecionou um PDF, converte para Base64 antes de salvar
+            if (pdfInput.files && pdfInput.files[0]) {
+                const file = pdfInput.files[0];
+                if (file.size > 1.5 * 1024 * 1024) { // Limite preventivo de 1.5MB por PDF para não estourar a memória local
+                    alert("Atenção: O PDF selecionado é muito grande! Escolha um arquivo menor que 1.5MB para não sobrecarregar o banco de dados local.");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    saveExamData(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                saveExamData();
+            }
         }
 
         function renderExamsTable() {
@@ -830,15 +957,39 @@
                 const exams = cat.exams || [];
                 exams.forEach(exam => {
                     const tr = document.createElement('tr');
+                    
+                    let pdfBtn = '<em>Nenhum</em>';
+                    if (exam.pdf) {
+                        pdfBtn = `<button onclick="viewExamPDF('${exam.pdf}')" class="btn-view-pdf">📄 Ver PDF</button>`;
+                    }
+
                     tr.innerHTML = `
                         <td>${exam.date}</td>
                         <td><strong>${cat.name}</strong></td>
                         <td>${exam.type}</td>
                         <td>${exam.result}</td>
+                        <td>${pdfBtn}</td>
                     `;
                     body.appendChild(tr);
                 });
             });
+        }
+
+        // Abre o PDF anexado em uma nova janela/aba do navegador
+        function viewExamPDF(base64Data) {
+            const newWindow = window.open();
+            if (newWindow) {
+                newWindow.document.write(`
+                    <html>
+                        <head><title>Laudo de Exame</title></head>
+                        <body style="margin:0;">
+                            <embed width="100%" height="100%" src="${base64Data}" type="application/pdf">
+                        </body>
+                    </html>
+                `);
+            } else {
+                alert("O navegador bloqueou a abertura do PDF em nova aba. Por favor, permita pop-ups para este site.");
+            }
         }
 
         function updateCurrentSectorLabel() {
@@ -944,12 +1095,19 @@
 
             const examsDiv = document.getElementById('prof-exams');
             const exams = cat.exams || [];
-            examsDiv.innerHTML = exams.map(e => `
-                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
-                    <small style="color:#64748b;">${e.date}</small><br>
-                    <strong>${e.type}</strong>: ${e.result}
-                </div>
-            `).reverse().join('') || 'Nenhum exame clínico anexado.';
+            examsDiv.innerHTML = exams.map(e => {
+                let pdfButtonHTML = '';
+                if (e.pdf) {
+                    pdfButtonHTML = `<br><button onclick="viewExamPDF('${e.pdf}')" class="btn-view-pdf" style="margin-top: 5px;">📄 Ver PDF</button>`;
+                }
+                return `
+                    <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+                        <small style="color:#64748b;">${e.date}</small><br>
+                        <strong>${e.type}</strong>: ${e.result}
+                        ${pdfButtonHTML}
+                    </div>
+                `;
+            }).reverse().join('') || 'Nenhum exame clínico anexado.';
 
             const movesDiv = document.getElementById('prof-moves');
             const movements = cat.movements || [];
