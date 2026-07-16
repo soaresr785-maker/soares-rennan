@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FelisHub | Por Rennan</title>
+    <title>FelisHub | Gestão de Abrigos</title>
     <style>
         :root {
             --primary-color: #ff8a5c;
@@ -29,13 +29,16 @@
 
         /* Sidebar */
         aside {
-            width: 250px;
+            width: 260px;
             background-color: #ffffff;
             border-right: 1px solid var(--border-color);
             padding: 24px;
             box-sizing: border-box;
             display: flex;
-            flex-direction: column; /* Permite empurrar a assinatura para o rodapé */
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
         }
 
         aside h1 {
@@ -54,11 +57,11 @@
             display: block;
             width: 100%;
             padding: 12px 16px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border: none;
             background: none;
             text-align: left;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: bold;
             color: var(--text-color);
             cursor: pointer;
@@ -71,19 +74,23 @@
             color: #ffffff;
         }
 
-        /* Rodapé do Desenvolvedor na Sidebar - Cor Escura Ajustada */
+        .tab-btn:hover:not(.active) {
+            background-color: #f1f5f9;
+        }
+
+        /* Rodapé do Desenvolvedor na Sidebar */
         .sidebar-footer {
-            margin-top: auto; /* Empurra para o final da tela */
+            margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid var(--border-color);
             font-size: 0.85rem;
-            color: #1e293b; /* Cinza bem escuro para alto contraste */
+            color: #1e293b;
             font-weight: bold;
             text-align: center;
         }
 
         .sidebar-footer strong {
-            color: #0f172a; /* Preto slate para destacar o nome */
+            color: #0f172a;
             text-decoration: underline;
             text-underline-offset: 3px;
         }
@@ -111,6 +118,11 @@
             color: var(--text-color);
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 8px;
+        }
+
+        h3 {
+            margin-top: 30px;
+            color: #1e293b;
         }
 
         /* Formulários e Inputs */
@@ -205,52 +217,14 @@
             font-weight: bold;
         }
 
-        /* Modal / Ficha Detalhada do Gato */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            border-radius: 12px;
-            overflow-y: auto;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            position: relative;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: #64748b;
-        }
-
-        /* Seções da Ficha Médica */
+        /* Seções de Registro */
         .record-section {
-            background-color: #f8fafc;
+            background-color: #ffffff;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
 
         .record-section h4 {
@@ -258,12 +232,7 @@
             color: #1e293b;
             border-bottom: 1px solid #cbd5e1;
             padding-bottom: 6px;
-        }
-
-        .action-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
+            font-size: 1.1rem;
         }
 
         .badge-status {
@@ -279,33 +248,46 @@
         .badge-gatil { background-color: var(--success-color); }
         .badge-obito { background-color: #1e293b; }
 
-        /* Estilos para Impressão (PDF de Prescrição) */
-        @media print {
-            body * {
-                visibility: hidden;
+        /* Grid layouts */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
             }
-            #print-area, #print-area * {
-                visibility: visible;
-            }
-            #print-area {
-                position: absolute;
-                left: 0;
-                top: 0;
+            aside {
                 width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            main {
                 padding: 20px;
+            }
+            .grid-3 {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
 
+    <!-- Sidebar de Navegação -->
     <aside>
         <div>
             <h1>🐱 FelisHub</h1>
             <p class="subtitle">Gestão para Abrigos Felinos</p>
-            <hr>
-            <button class="tab-btn active" onclick="switchTab('cti')">🏥 CTI</button>
-            <button class="tab-btn" onclick="switchTab('gatil')">🐈 Gatil</button>
+            <hr style="margin-bottom: 20px; border: 0; border-top: 1px solid var(--border-color);">
+            <button class="tab-btn active" onclick="switchTab('internacao')">🏥 Internação</button>
+            <button class="tab-btn" onclick="switchTab('medicacoes')">💊 Medicações</button>
+            <button class="tab-btn" onclick="switchTab('exames')">🧪 Exames Feitos</button>
+            <button class="tab-btn" onclick="switchTab('movimentacoes')">🔄 Movimentações</button>
+            <button class="tab-btn" onclick="switchTab('prontuarios')">📋 Prontuário Individual</button>
         </div>
 
         <div class="sidebar-footer">
@@ -313,43 +295,63 @@
         </div>
     </aside>
 
+    <!-- Conteúdo Principal -->
     <main>
         
-        <div id="tab-cti" class="section active">
-            <h2>🏥 Unidade de Terapia Intensiva (CTI)</h2>
-            <p>Monitore os gatinhos em estado crítico que exigem cuidados intensivos, medicações rigorosas e acompanhamento constante.</p>
+        <!-- 1. ABA INTERNAÇÃO -->
+        <div id="tab-internacao" class="section active">
+            <h2>🏥 Unidade de Internação e Triagem</h2>
+            <p>Admitir e gerenciar leitos ativos no CTI e alojamentos comuns no Gatil.</p>
             
             <div class="record-section">
-                <h4>Admitir Felino no CTI</h4>
-                <form id="form-cti" onsubmit="addCat(event, 'CTI')">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <h4>Nova Admissão</h4>
+                <form id="form-admissao" onsubmit="admitPatient(event)">
+                    <div class="grid-3">
                         <div class="form-group">
                             <label>Número do Microchip *</label>
-                            <input type="text" id="cti-chip" required placeholder="Ex: 981020000...">
+                            <input type="text" id="adm-chip" required placeholder="Ex: 981020000...">
                         </div>
                         <div class="form-group">
                             <label>Nome do Gato *</label>
-                            <input type="text" id="cti-name" required placeholder="Ex: Frajola">
+                            <input type="text" id="adm-name" required placeholder="Ex: Mingau">
                         </div>
                         <div class="form-group">
                             <label>Idade Aproximada</label>
-                            <input type="text" id="cti-age" placeholder="Ex: 2 anos">
+                            <input type="text" id="adm-age" placeholder="Ex: 2 anos">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Motivo da Admissão / Prontuário Inicial</label>
-                        <textarea id="cti-reason" rows="3" placeholder="Sintomas, diagnóstico inicial, estado de hidratação..."></textarea>
+                    <div class="grid-3">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Prontuário Inicial / Observações</label>
+                            <input type="text" id="adm-obs" placeholder="Motivo da entrada ou estado comportamental">
+                        </div>
+                        <div class="form-group">
+                            <label>Setor de Entrada *</label>
+                            <select id="adm-sector">
+                                <option value="CTI">🏥 Unidade de Terapia Intensiva (CTI)</option>
+                                <option value="Gatil">🐈 Alojamento Comum (Gatil)</option>
+                            </select>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-submit">Confirmar Admissão no CTI</button>
+                    <button type="submit" class="btn-submit">Confirmar Admissão</button>
                 </form>
-            </div>
-
-            <div class="search-container">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="search-cti" class="search-input" placeholder="Buscar no CTI por Nome ou Microchip..." oninput="renderTables()">
             </div>
 
             <h3>Fila de Leitos - CTI</h3>
+            <table style="margin-bottom: 30px;">
+                <thead>
+                    <tr>
+                        <th>Microchip</th>
+                        <th>Nome</th>
+                        <th>Idade</th>
+                        <th>Status</th>
+                        <th>Ações rápidas</th>
+                    </tr>
+                </thead>
+                <tbody id="table-cti-body"></tbody>
+            </table>
+
+            <h3>Fila de Alojamento - Gatil</h3>
             <table>
                 <thead>
                     <tr>
@@ -357,143 +359,212 @@
                         <th>Nome</th>
                         <th>Idade</th>
                         <th>Status</th>
-                        <th>Última Atualização</th>
+                        <th>Ações rápidas</th>
                     </tr>
                 </thead>
-                <tbody id="table-cti-body">
-                    </tbody>
+                <tbody id="table-gatil-body"></tbody>
             </table>
         </div>
 
-        <div id="tab-gatil" class="section">
-            <h2>🐈 Alojamento Comum - Gatil</h2>
-            <p>Gerencie os felinos que estão saudáveis, em recuperação pós-alta do CTI, ou aguardando adoção responsável.</p>
-            
+        <!-- 2. ABA MEDICAÇÕES -->
+        <div id="tab-medicacoes" class="section">
+            <h2>💊 Prescrições e Registro de Medicações</h2>
+            <p>Prescreva novos medicamentos ou controle os tratamentos ativos em andamento.</p>
+
             <div class="record-section">
-                <h4>Admitir Felino no Gatil</h4>
-                <form id="form-gatil" onsubmit="addCat(event, 'Gatil')">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <h4>Nova Prescrição</h4>
+                <form id="form-med" onsubmit="prescribeMedication(event)">
+                    <div class="grid-3">
                         <div class="form-group">
-                            <label>Número do Microchip *</label>
-                            <input type="text" id="gatil-chip" required placeholder="Ex: 981020000...">
+                            <label>Selecione o Gato *</label>
+                            <select id="med-cat-select" required></select>
                         </div>
                         <div class="form-group">
-                            <label>Nome do Gato *</label>
-                            <input type="text" id="gatil-name" required placeholder="Ex: Pipoca">
+                            <label>Medicamento e Dosagem *</label>
+                            <input type="text" id="med-name" required placeholder="Ex: Meloxicam 0.2mg">
                         </div>
                         <div class="form-group">
-                            <label>Idade Aproximada</label>
-                            <input type="text" id="gatil-age" placeholder="Ex: 6 meses">
+                            <label>Frequência *</label>
+                            <input type="text" id="med-freq" required placeholder="Ex: 12h/12h ou dose única">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Observações Comportamentais / Prontuário Inicial</label>
-                        <textarea id="gatil-reason" rows="3" placeholder="Amigável, arredio, convive bem com outros gatos..."></textarea>
+                    <div class="grid-3">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Duração do Tratamento</label>
+                            <input type="text" id="med-duration" placeholder="Ex: 5 dias ou Contínuo">
+                        </div>
+                        <div class="form-group" style="align-self: end; margin-bottom: 16px;">
+                            <button type="submit" class="btn-submit" style="width: 100%;">Registrar Medicação</button>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-submit">Confirmar Entrada no Gatil</button>
                 </form>
             </div>
 
-            <div class="search-container">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="search-gatil" class="search-input" placeholder="Buscar no Gatil por Nome ou Microchip..." oninput="renderTables()">
-            </div>
-
-            <h3>Gatos no Gatil</h3>
+            <h3>Tratamentos Ativos no Abrigo</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Microchip</th>
-                        <th>Nome</th>
-                        <th>Idade</th>
-                        <th>Status</th>
-                        <th>Última Atualização</th>
+                        <th>Paciente</th>
+                        <th>Setor</th>
+                        <th>Medicamento</th>
+                        <th>Frequência</th>
+                        <th>Duração</th>
+                        <th>Ação</th>
                     </tr>
                 </thead>
-                <tbody id="table-gatil-body">
-                    </tbody>
+                <tbody id="table-meds-body"></tbody>
             </table>
+        </div>
+
+        <!-- 3. ABA EXAMES -->
+        <div id="tab-exames" class="section">
+            <h2>🧪 Histórico de Exames Laboratoriais</h2>
+            <p>Registre exames realizados pelos pacientes para manter o acompanhamento clínico em dia.</p>
+
+            <div class="record-section">
+                <h4>Registrar Exame Realizado</h4>
+                <form id="form-exam" onsubmit="recordExam(event)">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Selecione o Gato *</label>
+                            <select id="exam-cat-select" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Exame *</label>
+                            <input type="text" id="exam-type" required placeholder="Ex: Hemograma completo, Teste FIV/FeLV, Eco">
+                        </div>
+                        <div class="form-group">
+                            <label>Resultado / Laudo Clínico *</label>
+                            <input type="text" id="exam-result" required placeholder="Ex: Reagente para FeLV, Sem alterações na série vermelha">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Salvar Exame no Prontuário</button>
+                </form>
+            </div>
+
+            <h3>Exames Recentes</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Paciente</th>
+                        <th>Exame</th>
+                        <th>Resultado</th>
+                    </tr>
+                </thead>
+                <tbody id="table-exams-body"></tbody>
+            </table>
+        </div>
+
+        <!-- 4. ABA MOVIMENTAÇÕES DE SALA -->
+        <div id="tab-movimentacoes" class="section">
+            <h2>🔄 Registro de Movimentações de Sala (CTI/Gatil)</h2>
+            <p>Monitore a rotatividade e histórico de mudanças de setor dos pacientes dentro do abrigo.</p>
+
+            <div class="record-section">
+                <h4>Registrar Nova Movimentação</h4>
+                <form id="form-move" onsubmit="moveRoom(event)">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Selecione o Gato *</label>
+                            <select id="move-cat-select" onchange="updateCurrentSectorLabel()" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Setor Atual</label>
+                            <input type="text" id="move-current-sector" disabled style="background-color: #f1f5f9;">
+                        </div>
+                        <div class="form-group">
+                            <label>Destino de Transferência *</label>
+                            <select id="move-dest-sector">
+                                <option value="CTI">🏥 CTI (Terapia Intensiva)</option>
+                                <option value="Gatil">🐈 Gatil (Alojamento Comum)</option>
+                                <option value="Óbito">💀 Registrar Óbito</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Confirmar Movimentação</button>
+                </form>
+            </div>
+
+            <h3>Histórico de Transferências</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Paciente</th>
+                        <th>Origem ➡️ Destino</th>
+                        <th>Responsável</th>
+                    </tr>
+                </thead>
+                <tbody id="table-movements-body"></tbody>
+            </table>
+        </div>
+
+        <!-- 5. ABA PRONTUÁRIO INDIVIDUAL -->
+        <div id="tab-prontuarios" class="section">
+            <h2>📋 Prontuário Clínico Individual</h2>
+            <p>Selecione um paciente para carregar a sua ficha médica integrada de forma consolidada.</p>
+
+            <div class="form-group" style="max-width: 400px; margin-bottom: 30px;">
+                <label>Buscar Paciente no Banco de Dados:</label>
+                <select id="patient-search-select" onchange="loadIndividualPatientProfile()">
+                    <option value="">-- Escolha um Paciente --</option>
+                </select>
+            </div>
+
+            <!-- Ficha médica consolidada -->
+            <div id="individual-profile-card" style="display: none;">
+                <div class="record-section" style="border-left: 5px solid var(--primary-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h2 id="prof-name" style="border: none; margin: 0 0 5px 0; padding: 0;">-</h2>
+                            <p style="margin: 0; color: #64748b;">
+                                Microchip: <strong id="prof-chip">-</strong> | Idade Estimada: <strong id="prof-age">-</strong>
+                            </p>
+                        </div>
+                        <span id="prof-badge" class="badge-status">-</span>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Histórico e Evolução -->
+                    <div class="record-section">
+                        <h4>📋 Evoluções Clínicas</h4>
+                        <div id="prof-history" style="max-height: 250px; overflow-y: auto; background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
+                        </div>
+                        <div class="form-group" style="margin-top: 12px;">
+                            <textarea id="prof-new-evolution" rows="2" placeholder="Nova anotação clínica..."></textarea>
+                            <button class="btn-submit" onclick="addProfileEvolution()" style="margin-top: 8px; font-size: 0.85rem; padding: 6px 12px;">Anotar Evolução</button>
+                        </div>
+                    </div>
+
+                    <!-- Prescrições do Gato -->
+                    <div class="record-section">
+                        <h4>💊 Tratamentos e Receitas</h4>
+                        <div id="prof-meds" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 12px;"></div>
+                        <button class="btn-submit" onclick="switchTab('medicacoes')" style="font-size: 0.85rem; padding: 6px 12px;">Ir para Prescrições</button>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                    <!-- Exames do Gato -->
+                    <div class="record-section">
+                        <h4>🧪 Laudo de Exames</h4>
+                        <div id="prof-exams" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;"></div>
+                    </div>
+
+                    <!-- Movimentações do Gato -->
+                    <div class="record-section">
+                        <h4>🔄 Movimentações de Setor</h4>
+                        <div id="prof-moves" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </main>
 
-    <div id="cat-modal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">×</button>
-            
-            <h2 id="modal-cat-name" style="margin-bottom: 5px;">Nome do Gato</h2>
-            <p style="margin-top: 0; color: #64748b;">
-                Microchip: <span id="modal-cat-chip" style="font-weight: bold;">-</span> | 
-                Idade: <span id="modal-cat-age">-</span> | 
-                Localização Atual: <span id="modal-cat-status" class="badge-status">-</span>
-            </p>
-
-            <div class="action-row" style="background-color: #f1f5f9; padding: 10px; border-radius: 8px;">
-                <span style="font-weight: bold; align-self: center;">Mudar Status:</span>
-                <button onclick="updateLocation('CTI')" class="btn-submit" style="background-color: var(--cti-color); padding: 5px 10px; font-size: 0.85rem;">Transferir para CTI</button>
-                <button onclick="updateLocation('Gatil')" class="btn-submit" style="background-color: var(--success-color); padding: 5px 10px; font-size: 0.85rem;">Transferir para Gatil</button>
-                <button onclick="registerDeath()" class="btn-submit" style="background-color: var(--danger-color); padding: 5px 10px; font-size: 0.85rem;">Registrar Óbito</button>
-            </div>
-
-            <hr>
-
-            <div class="record-section">
-                <h4>📋 Prontuário Clínico & Evolução</h4>
-                <div id="evolution-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 12px; background: white; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                    </div>
-                <div class="form-group" style="margin-bottom: 8px;">
-                    <textarea id="new-evolution-text" rows="2" placeholder="Descreva a nova evolução clínica... (Ex: 'Gato está mais ativo, se alimentando bem sozinho.')"></textarea>
-                </div>
-                <button class="btn-submit" onclick="addEvolution()" style="font-size: 0.85rem; padding: 6px 12px;">Registrar Nova Evolução</button>
-            </div>
-
-            <div class="record-section">
-                <h4>💊 Prescrições e Medicações Ativas</h4>
-                <div id="prescription-list" style="margin-bottom: 12px; background: white; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                    </div>
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 8px;">
-                    <input type="text" id="med-name" placeholder="Medicamento e Dosagem (Ex: Meloxicam 0,2mg)">
-                    <input type="text" id="med-freq" placeholder="Frequência (Ex: 12h/12h)">
-                    <input type="text" id="med-duration" placeholder="Duração (Ex: 5 dias)">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-submit" onclick="addMedication()" style="font-size: 0.85rem; padding: 6px 12px;">Adicionar Medicamento</button>
-                    <button class="btn-submit" onclick="printPrescription()" style="font-size: 0.85rem; padding: 6px 12px; background-color: #64748b;">🖨️ Gerar PDF da Prescrição</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="print-area" style="display: none; font-family: Arial, sans-serif;">
-        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
-            <h1 style="margin: 0; font-size: 24px;">🐱 FelisHub</h1>
-            <p style="margin: 5px 0 0 0; font-size: 14px;">PRESCRIÇÃO CLÍNICA DE ENFERMARIA ANIMAL</p>
-        </div>
-        <div style="margin-bottom: 20px;">
-            <p><strong>Paciente (Felino):</strong> <span id="print-cat-name"></span></p>
-            <p><strong>Microchip ID:</strong> <span id="print-cat-chip"></span></p>
-            <p><strong>Idade Estimada:</strong> <span id="print-cat-age"></span></p>
-            <p><strong>Setor Atual:</strong> <span id="print-cat-status"></span></p>
-            <p><strong>Data de Emissão:</strong> <span id="print-date"></span></p>
-        </div>
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background-color: #f2f2f2; border-bottom: 1px solid #000;">
-                    <th style="text-align: left; padding: 8px;">Medicamento / Via de Administração</th>
-                    <th style="text-align: left; padding: 8px;">Frequência</th>
-                    <th style="text-align: left; padding: 8px;">Duração</th>
-                </tr>
-            </thead>
-            <tbody id="print-table-body">
-                </tbody>
-        </table>
-        <div style="margin-top: 60px; text-align: center;">
-            <div style="width: 250px; border-top: 1px solid #000; margin: 0 auto;"></div>
-            <p style="margin-top: 5px; font-size: 12px;">Assinatura do Responsável Clínico / Desenvolvedor do Triador Rennan</p>
-        </div>
-    </div>
-
+    <!-- JavaScript - Inteligência do Sistema -->
     <script>
         // BANCO DE DADOS LOCAL PERMANENTE
         let cats = JSON.parse(localStorage.getItem('felishub_database')) || [
@@ -503,14 +574,21 @@
                 age: "3 anos",
                 status: "CTI",
                 history: [
-                    "Admitido no CTI com sintomas agudos de desidratação e obstrução urinária.",
-                    "Procedimento de desobstrução realizado com sucesso. Aguardando monitoramento renal."
+                    "Admitido no CTI com sintomas agudos de desidratação e obstrução urinária[cite: 1].",
+                    "Procedimento de desobstrução realizado com sucesso[cite: 1]."
                 ],
                 medications: [
-                    { name: "Cerenia 10mg/ml (0,3 ml)", freq: "24h/24h", duration: "3 dias" },
-                    { name: "Soro Ringer Lactato (150 ml)", freq: "Contínuo", duration: "Sob avaliação" }
+                    { name: "Cerenia 10mg/ml (0,3 ml)", freq: "24h/24h", duration: "3 dias"[cite: 1] },
+                    { name: "Soro Ringer Lactato (150 ml)", freq: "Contínuo", duration: "Sob avaliação"[cite: 1] }
                 ],
-                updatedAt: new Date().toLocaleDateString('pt-BR')
+                exams: [
+                    { type: "FIV/FeLV Rapid Test", result: "Não reagente", date: "10/05/2026" },
+                    { type: "Hemograma", result: "Anemia leve sob acompanhamento", date: "14/05/2026" }
+                ],
+                movements: [
+                    { from: "Admissão", to: "CTI", date: "10/05/2026" }
+                ],
+                updatedAt: "14/05/2026"
             },
             {
                 chip: "981020001990223",
@@ -518,15 +596,16 @@
                 age: "1 ano",
                 status: "Gatil",
                 history: [
-                    "Castrada e microchipada. Saudável e dócil.",
-                    "Liberada para convívio com outros gatos no alojamento principal."
+                    "Castrada e microchipada[cite: 1]."
                 ],
                 medications: [],
-                updatedAt: new Date().toLocaleDateString('pt-BR')
+                exams: [],
+                movements: [
+                    { from: "Admissão", to: "Gatil", date: "12/05/2026" }
+                ],
+                updatedAt: "12/05/2026"
             }
         ];
-
-        let selectedCatChip = null;
 
         function saveToStorage() {
             localStorage.setItem('felishub_database', JSON.stringify(cats));
@@ -536,42 +615,75 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
 
-            if (tabId === 'cti') {
-                document.querySelector('.tab-btn:nth-of-type(1)').classList.add('active');
-                document.getElementById('tab-cti').classList.add('active');
-            } else {
-                document.querySelector('.tab-btn:nth-of-type(2)').classList.add('active');
-                document.getElementById('tab-gatil').classList.add('active');
-            }
-            renderTables();
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            // Atualiza os componentes ao trocar de aba
+            populateCatDropdowns();
+            renderAllTables();
         }
 
-        function renderTables() {
+        // Popula todas as tags de select (Gato) com os dados atuais
+        function populateCatDropdowns() {
+            const dropdowns = [
+                'med-cat-select', 
+                'exam-cat-select', 
+                'move-cat-select', 
+                'patient-search-select'
+            ];
+
+            dropdowns.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                
+                const savedVal = el.value; // Salva o valor selecionado antes de recriar
+                el.innerHTML = id === 'patient-search-select' 
+                    ? '<option value="">-- Escolha um Paciente --</option>' 
+                    : '<option value="">-- Selecione o Paciente --</option>';
+
+                cats.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.chip;
+                    opt.textContent = `${cat.name} (${cat.chip})`;
+                    el.appendChild(opt);
+                });
+
+                if (savedVal) el.value = savedVal;
+            });
+        }
+
+        function renderAllTables() {
+            renderInternmentTables();
+            renderMedicationTable();
+            renderExamsTable();
+            renderMovementsTable();
+        }
+
+        // Renderiza as tabelas da aba de Internação
+        function renderInternmentTables() {
             const ctiBody = document.getElementById('table-cti-body');
             const gatilBody = document.getElementById('table-gatil-body');
-            
-            const searchCtiQuery = document.getElementById('search-cti').value.toLowerCase().trim();
-            const searchGatilQuery = document.getElementById('search-gatil').value.toLowerCase().trim();
             
             ctiBody.innerHTML = '';
             gatilBody.innerHTML = '';
 
             cats.forEach(cat => {
-                const matchCti = cat.name.toLowerCase().includes(searchCtiQuery) || cat.chip.toLowerCase().includes(searchCtiQuery);
-                const matchGatil = cat.name.toLowerCase().includes(searchGatilQuery) || cat.chip.toLowerCase().includes(searchGatilQuery);
-
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><span class="clickable-link" onclick="openCatDetails('${cat.chip}')">${cat.chip}</span></td>
-                    <td><span class="clickable-link" onclick="openCatDetails('${cat.chip}')">${cat.name}</span></td>
+                    <td><strong>${cat.chip}</strong></td>
+                    <td><span class="clickable-link" onclick="openPatientProfileDirectly('${cat.chip}')">${cat.name}</span></td>
                     <td>${cat.age || 'Não informada'}</td>
                     <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
-                    <td>${cat.updatedAt}</td>
+                    <td>
+                        <button onclick="quickMove('${cat.chip}')" class="btn-submit" style="padding: 4px 8px; font-size: 0.8rem; background-color: #64748b;">Mover Setor</button>
+                    </td>
                 `;
 
-                if (cat.status === 'CTI' && matchCti) {
+                if (cat.status === 'CTI') {
                     ctiBody.appendChild(tr);
-                } else if (cat.status === 'Gatil' && matchGatil) {
+                } else if (cat.status === 'Gatil') {
                     gatilBody.appendChild(tr);
                 }
             });
@@ -583,195 +695,284 @@
             return 'badge-obito';
         }
 
-        function addCat(event, section) {
+        // Cadastro de nova admissão
+        function admitPatient(event) {
             event.preventDefault();
-            
-            const chip = document.getElementById(`${section.toLowerCase()}-chip`).value.trim();
-            const name = document.getElementById(`${section.toLowerCase()}-name`).value.trim();
-            const age = document.getElementById(`${section.toLowerCase()}-age`).value.trim();
-            const reason = document.getElementById(`${section.toLowerCase()}-reason`).value.trim();
+            const chip = document.getElementById('adm-chip').value.trim();
+            const name = document.getElementById('adm-name').value.trim();
+            const age = document.getElementById('adm-age').value.trim();
+            const obs = document.getElementById('adm-obs').value.trim();
+            const sector = document.getElementById('adm-sector').value;
 
             if (cats.some(c => c.chip === chip)) {
-                alert("Já existe um felino cadastrado com este número de microchip!");
+                alert("Este Microchip já se encontra cadastrado!");
                 return;
             }
 
+            const today = new Date().toLocaleDateString('pt-BR');
             const newCat = {
                 chip,
                 name,
                 age,
-                status: section,
-                history: reason ? [reason] : ["Admitido na unidade."],
+                status: sector,
+                history: [obs ? `${today}: Admissão - ${obs}` : `${today}: Admissão no setor ${sector}.`],
                 medications: [],
-                updatedAt: new Date().toLocaleDateString('pt-BR')
+                exams: [],
+                movements: [{ from: "Admissão", to: sector, date: today }],
+                updatedAt: today
             };
 
             cats.push(newCat);
             saveToStorage();
-            renderTables();
-            
-            document.getElementById(`form-${section.toLowerCase()}`).reset();
-            alert(`${name} adicionado com sucesso ao ${section}!`);
+            document.getElementById('form-admissao').reset();
+            populateCatDropdowns();
+            renderInternmentTables();
+            alert(`${name} admitido com sucesso no setor ${sector}!`);
         }
 
-        function openCatDetails(chip) {
-            const cat = cats.find(c => c.chip === chip);
-            if (!cat) return;
-
-            selectedCatChip = chip;
-            
-            document.getElementById('modal-cat-name').innerText = cat.name;
-            document.getElementById('modal-cat-chip').innerText = cat.chip;
-            document.getElementById('modal-cat-age').innerText = cat.age || 'Não informada';
-            
-            const statusBadge = document.getElementById('modal-cat-status');
-            statusBadge.innerText = cat.status;
-            statusBadge.className = `badge-status ${getStatusClass(cat.status)}`;
-
-            renderModalHistoryAndMeds(cat);
-
-            document.getElementById('cat-modal').classList.add('active');
-        }
-
-        function renderModalHistoryAndMeds(cat) {
-            const historyDiv = document.getElementById('evolution-list');
-            historyDiv.innerHTML = cat.history.map((h, i) => `
-                <div style="padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.9rem;">
-                    <strong>[${i + 1}]</strong> ${h}
-                </div>
-            `).join('');
-
-            const medsDiv = document.getElementById('prescription-list');
-            if (cat.medications.length === 0) {
-                medsDiv.innerHTML = `<p style="font-size: 0.9rem; color: #64748b; margin: 0;">Nenhuma medicação ativa.</p>`;
-            } else {
-                medsDiv.innerHTML = cat.medications.map((m, i) => `
-                    <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem;">
-                        <span><strong>${m.name}</strong> (${m.freq} — ${m.duration})</span>
-                        <button onclick="removeMedication(${i})" style="border: none; background: none; color: var(--danger-color); cursor: pointer; font-weight: bold;">Remover</button>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('cat-modal').classList.remove('active');
-            selectedCatChip = null;
-        }
-
-        function updateLocation(newStatus) {
-            const cat = cats.find(c => c.chip === selectedCatChip);
-            if (!cat) return;
-
-            cat.status = newStatus;
-            cat.updatedAt = new Date().toLocaleDateString('pt-BR');
-            cat.history.push(`Transferido de setor para: ${newStatus} em ${cat.updatedAt}`);
-            
-            saveToStorage();
-            alert(`${cat.name} foi movido(a) para ${newStatus}!`);
-            openCatDetails(cat.chip);
-            renderTables();
-        }
-
-        function registerDeath() {
-            const cat = cats.find(c => c.chip === selectedCatChip);
-            if (!cat) return;
-
-            if (confirm(`Tem certeza de que deseja registrar o óbito de ${cat.name}? Essa ação mudará permanentemente o prontuário.`)) {
-                cat.status = 'Óbito';
-                cat.updatedAt = new Date().toLocaleDateString('pt-BR');
-                cat.history.push(`Óbito registrado em ${cat.updatedAt}`);
-                
-                saveToStorage();
-                alert(`Óbito de ${cat.name} documentado com respeito.`);
-                closeModal();
-                renderTables();
-            }
-        }
-
-        function addEvolution() {
-            const textInput = document.getElementById('new-evolution-text');
-            const evolutionText = textInput.value.trim();
-            
-            if (!evolutionText) return;
-
-            const cat = cats.find(c => c.chip === selectedCatChip);
-            if (cat) {
-                const datePrefix = new Date().toLocaleDateString('pt-BR');
-                cat.history.push(`${datePrefix}: ${evolutionText}`);
-                cat.updatedAt = datePrefix;
-                
-                saveToStorage();
-                textInput.value = '';
-                renderModalHistoryAndMeds(cat);
-                renderTables();
-            }
-        }
-
-        function addMedication() {
+        // Aba de Medicações
+        function prescribeMedication(event) {
+            event.preventDefault();
+            const chip = document.getElementById('med-cat-select').value;
             const name = document.getElementById('med-name').value.trim();
             const freq = document.getElementById('med-freq').value.trim();
-            const duration = document.getElementById('med-duration').value.trim();
+            const duration = document.getElementById('med-duration').value.trim() || 'Contínuo';
 
-            if (!name || !freq) {
-                alert("Insira pelo menos o nome do medicamento e a frequência.");
+            const cat = cats.find(c => c.chip === chip);
+            if (!cat) {
+                alert("Selecione um paciente válido!");
                 return;
             }
 
-            const cat = cats.find(c => c.chip === selectedCatChip);
-            if (cat) {
-                cat.medications.push({
-                    name,
-                    freq,
-                    duration: duration || 'Contínuo'
+            cat.medications.push({ name, freq, duration });
+            cat.updatedAt = new Date().toLocaleDateString('pt-BR');
+            cat.history.push(`${cat.updatedAt}: Prescrito ${name} (${freq} - ${duration})`);
+            
+            saveToStorage();
+            document.getElementById('form-med').reset();
+            renderMedicationTable();
+            alert(`Medicamento prescrito com sucesso para ${cat.name}!`);
+        }
+
+        function renderMedicationTable() {
+            const body = document.getElementById('table-meds-body');
+            body.innerHTML = '';
+
+            cats.forEach(cat => {
+                cat.medications.forEach((med, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${cat.name}</strong></td>
+                        <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
+                        <td>${med.name}</td>
+                        <td>${med.freq}</td>
+                        <td>${med.duration}</td>
+                        <td>
+                            <button onclick="removeMedication('${cat.chip}', ${index})" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-weight:bold;">Suspender</button>
+                        </td>
+                    `;
+                    body.appendChild(tr);
                 });
-
-                saveToStorage();
-
-                document.getElementById('med-name').value = '';
-                document.getElementById('med-freq').value = '';
-                document.getElementById('med-duration').value = '';
-
-                renderModalHistoryAndMeds(cat);
-            }
+            });
         }
 
-        function removeMedication(index) {
-            const cat = cats.find(c => c.chip === selectedCatChip);
+        function removeMedication(chip, index) {
+            const cat = cats.find(c => c.chip === chip);
             if (cat) {
-                cat.medications.splice(index, 1);
+                const removed = cat.medications.splice(index, 1)[0];
+                cat.updatedAt = new Date().toLocaleDateString('pt-BR');
+                cat.history.push(`${cat.updatedAt}: Suspenso medicamento ${removed.name}.`);
                 saveToStorage();
-                renderModalHistoryAndMeds(cat);
+                renderMedicationTable();
             }
         }
 
-        function printPrescription() {
-            const cat = cats.find(c => c.chip === selectedCatChip);
+        // Aba de Exames
+        function recordExam(event) {
+            event.preventDefault();
+            const chip = document.getElementById('exam-cat-select').value;
+            const type = document.getElementById('exam-type').value.trim();
+            const result = document.getElementById('exam-result').value.trim();
+            const today = new Date().toLocaleDateString('pt-BR');
+
+            const cat = cats.find(c => c.chip === chip);
+            if (!cat) {
+                alert("Selecione um paciente!");
+                return;
+            }
+
+            cat.exams.push({ type, result, date: today });
+            cat.updatedAt = today;
+            cat.history.push(`${today}: Realizado exame ${type}. Resultado: ${result}`);
+
+            saveToStorage();
+            document.getElementById('form-exam').reset();
+            renderExamsTable();
+            alert(`Exame registrado com sucesso no prontuário de ${cat.name}!`);
+        }
+
+        function renderExamsTable() {
+            const body = document.getElementById('table-exams-body');
+            body.innerHTML = '';
+
+            cats.forEach(cat => {
+                cat.exams.forEach(exam => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${exam.date}</td>
+                        <td><strong>${cat.name}</strong></td>
+                        <td>${exam.type}</td>
+                        <td>${exam.result}</td>
+                    `;
+                    body.appendChild(tr);
+                });
+            });
+        }
+
+        // Aba de Movimentações
+        function updateCurrentSectorLabel() {
+            const chip = document.getElementById('move-cat-select').value;
+            const label = document.getElementById('move-current-sector');
+            const cat = cats.find(c => c.chip === chip);
+            label.value = cat ? cat.status : '';
+        }
+
+        function moveRoom(event) {
+            event.preventDefault();
+            const chip = document.getElementById('move-cat-select').value;
+            const dest = document.getElementById('move-dest-sector').value;
+            const today = new Date().toLocaleDateString('pt-BR');
+
+            const cat = cats.find(c => c.chip === chip);
             if (!cat) return;
 
-            document.getElementById('print-cat-name').innerText = cat.name;
-            document.getElementById('print-cat-chip').innerText = cat.chip;
-            document.getElementById('print-cat-age').innerText = cat.age || 'Não informada';
-            document.getElementById('print-cat-status').innerText = cat.status;
-            document.getElementById('print-date').innerText = new Date().toLocaleDateString('pt-BR');
-
-            const printTbody = document.getElementById('print-table-body');
-            if (cat.medications.length === 0) {
-                printTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 10px;">Nenhum medicamento ativo prescrito nesta data.</td></tr>`;
-            } else {
-                printTbody.innerHTML = cat.medications.map(m => `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px;">${m.name}</td>
-                        <td style="padding: 10px;">${m.freq}</td>
-                        <td style="padding: 10px;">${m.duration}</td>
-                    </tr>
-                `).join('');
+            if (cat.status === dest) {
+                alert(`O paciente ${cat.name} já se encontra no setor ${dest}!`);
+                return;
             }
 
-            window.print();
+            const from = cat.status;
+            cat.status = dest;
+            cat.updatedAt = today;
+            cat.movements.push({ from, to: dest, date: today });
+            cat.history.push(`${today}: Transferência de setor de ${from} para ${dest}.`);
+
+            saveToStorage();
+            document.getElementById('form-move').reset();
+            document.getElementById('move-current-sector').value = '';
+            renderMovementsTable();
+            alert(`${cat.name} transferido com sucesso!`);
         }
 
-        renderTables();
+        function renderMovementsTable() {
+            const body = document.getElementById('table-movements-body');
+            body.innerHTML = '';
+
+            cats.forEach(cat => {
+                cat.movements.forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${m.date}</td>
+                        <td><strong>${cat.name}</strong></td>
+                        <td>${m.from} ➡️ ${m.to}</td>
+                        <td>Controle de Leitos</td>
+                    `;
+                    body.appendChild(tr);
+                });
+            });
+        }
+
+        function quickMove(chip) {
+            switchTab('movimentacoes');
+            document.getElementById('move-cat-select').value = chip;
+            updateCurrentSectorLabel();
+        }
+
+        // Aba Prontuário Clínico Individual
+        function openPatientProfileDirectly(chip) {
+            switchTab('prontuarios');
+            document.getElementById('patient-search-select').value = chip;
+            loadIndividualPatientProfile();
+        }
+
+        function loadIndividualPatientProfile() {
+            const chip = document.getElementById('patient-search-select').value;
+            const card = document.getElementById('individual-profile-card');
+            
+            if (!chip) {
+                card.style.display = 'none';
+                return;
+            }
+
+            const cat = cats.find(c => c.chip === chip);
+            if (!cat) return;
+
+            // Dados Cadastrais
+            document.getElementById('prof-name').innerText = cat.name;
+            document.getElementById('prof-chip').innerText = cat.chip;
+            document.getElementById('prof-age').innerText = cat.age || 'Não informada';
+            
+            const badge = document.getElementById('prof-badge');
+            badge.innerText = cat.status;
+            badge.className = `badge-status ${getStatusClass(cat.status)}`;
+
+            // Histórico de Evolução
+            const historyDiv = document.getElementById('prof-history');
+            historyDiv.innerHTML = cat.history.map(h => `
+                <div style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">
+                    ${h}
+                </div>
+            `).reverse().join('') || 'Sem evoluções registradas.';
+
+            // Prescrições Ativas
+            const medsDiv = document.getElementById('prof-meds');
+            medsDiv.innerHTML = cat.medications.map(m => `
+                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+                    <strong>${m.name}</strong> - ${m.freq} (${m.duration})
+                </div>
+            `).join('') || 'Nenhum tratamento ativo cadastrado.';
+
+            // Exames Realizados
+            const examsDiv = document.getElementById('prof-exams');
+            examsDiv.innerHTML = cat.exams.map(e => `
+                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+                    <small style="color:#64748b;">${e.date}</small><br>
+                    <strong>${e.type}</strong>: ${e.result}
+                </div>
+            `).reverse().join('') || 'Nenhum exame clínico anexado.';
+
+            // Movimentações
+            const movesDiv = document.getElementById('prof-moves');
+            movesDiv.innerHTML = cat.movements.map(m => `
+                <div style="margin-bottom: 6px; font-size: 0.85rem;">
+                    📅 ${m.date}: De ${m.from} para <strong>${m.to}</strong>
+                </div>
+            `).reverse().join('');
+
+            card.style.display = 'block';
+        }
+
+        function addProfileEvolution() {
+            const input = document.getElementById('prof-new-evolution');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chip = document.getElementById('patient-search-select').value;
+            const cat = cats.find(c => c.chip === chip);
+            if (cat) {
+                const today = new Date().toLocaleDateString('pt-BR');
+                cat.history.push(`${today}: ${text}`);
+                cat.updatedAt = today;
+                saveToStorage();
+                input.value = '';
+                loadIndividualPatientProfile();
+                renderAllTables();
+            }
+        }
+
+        // Inicialização
+        populateCatDropdowns();
+        renderAllTables();
     </script>
 </body>
 </html>
