@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FelisHub | Gestão de Abrigos</title>
+    <!-- SDK do Supabase via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Bibliotecas de Animação e Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <style>
         :root {
             --primary-color: #ff8a5c;
             --primary-hover: #e57c50;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            --text-color: #334155;
+            --text-color: #1e293b;
             --border-color: #e2e8f0;
             --danger-color: #ef4444;
             --success-color: #22c55e;
@@ -19,118 +23,107 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             display: flex;
             min-height: 100vh;
-            line-height: 1.25;
+            line-height: 1.4;
         }
 
-        /* Tela de Login */
-        #auth-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--bg-color);
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 9999;
-        }
-
-        .auth-card {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
+        /* Transição global para suavizar interações */
+        * {
+            transition: all 0.2s ease;
             box-sizing: border-box;
-            text-align: center;
         }
 
-        .auth-card h1 {
-            color: var(--primary-color);
-            margin-bottom: 20px;
-        }
-
-        /* Sidebar */
+        /* Sidebar Elegante */
         aside {
             width: 260px;
             background-color: #ffffff;
             border-right: 1px solid var(--border-color);
-            padding: 24px;
-            box-sizing: border-box;
-            display: none; /* Só aparece logado */
+            padding: 30px 20px;
+            display: flex;
             flex-direction: column;
             position: sticky;
             top: 0;
             height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+            z-index: 10;
         }
 
         aside h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             margin: 0 0 5px 0;
             color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         aside p.subtitle {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: #64748b;
-            margin: 0 0 24px 0;
+            margin: 0 0 30px 0;
         }
 
         .tab-btn {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
             border: none;
             background: none;
             text-align: left;
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: var(--text-color);
+            font-size: 1rem;
+            font-weight: 600;
+            color: #475569;
             cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s;
+            border-radius: 12px;
         }
 
         .tab-btn.active {
             background-color: var(--primary-color);
             color: #ffffff;
+            box-shadow: 0 4px 12px rgba(255, 138, 92, 0.25);
         }
 
         .tab-btn:hover:not(.active) {
             background-color: #f1f5f9;
+            color: var(--primary-color);
+            transform: translateX(3px);
         }
 
-        .btn-backup {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 6px;
-            border: 1px solid var(--primary-color);
-            background: none;
-            color: var(--primary-color);
-            border-radius: 6px;
-            font-size: 0.8rem;
+        .btn-admit-trigger {
+            margin-top: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(255, 138, 92, 0.2);
         }
 
-        /* Rodapé do Desenvolvedor na Sidebar */
+        .btn-admit-trigger:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
         .sidebar-footer {
             margin-top: auto;
-            padding-top: 10px;
+            padding-top: 15px;
             border-top: 1px solid var(--border-color);
             font-size: 0.85rem;
-            color: #1e293b;
-            font-weight: bold;
+            color: #64748b;
             text-align: center;
         }
 
@@ -138,9 +131,7 @@
         main {
             flex: 1;
             padding: 40px;
-            box-sizing: border-box;
             overflow-y: auto;
-            display: none; /* Só aparece logado */
         }
 
         .section {
@@ -149,177 +140,296 @@
 
         .section.active {
             display: block;
+            animation: fadeInUp 0.4s ease-out forwards;
         }
 
-        h2 {
-            font-size: 1.8rem;
-            margin-top: 0;
-            margin-bottom: 24px;
-            color: var(--text-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 8px;
+        /* Top Bar de Pesquisa */
+        .search-bar-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
         }
 
-        h3 {
-            margin-top: 30px;
-            color: #1e293b;
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
         }
 
-        /* Formulários e Inputs */
-        .form-group {
-            margin-bottom: 16px;
+        .search-input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
         }
 
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            font-size: 0.9rem;
+        .search-input-wrapper input {
+            padding-left: 45px;
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 10px;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background-color: #fff;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 138, 92, 0.15);
+        }
+
+        /* Grid de Cards de Gatinhos */
+        .cats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        /* Card de Gatinho Moderno */
+        .cat-card {
+            background: #ffffff;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 0.95rem;
-        }
-
-        /* Estilo para upload de arquivo */
-        input[type="file"] {
-            padding: 8px;
-            background-color: #ffffff;
-        }
-
-        button.btn-submit {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            border: none;
-            padding: 10px 20px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        button.btn-submit:hover {
-            background-color: var(--primary-hover);
-        }
-
-        /* Tabelas */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            background-color: #ffffff;
-            border-radius: 8px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        th, td {
-            padding: 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-        }
-
-        th {
-            background-color: #f1f5f9;
-            font-weight: bold;
-            color: #475569;
-        }
-
-        tr:hover {
-            background-color: #f8fafc;
-        }
-
-        .clickable-link {
-            color: var(--primary-color);
-            text-decoration: underline;
             cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-view-pdf {
-            display: inline-block;
-            background-color: #e2e8f0;
-            color: #334155;
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 0.8rem;
-            font-weight: bold;
-            border: 1px solid #cbd5e1;
-            cursor: pointer;
-        }
-
-        .btn-view-pdf:hover {
-            background-color: #cbd5e1;
-        }
-
-        /* Seções de Registro */
-        .record-section {
-            background-color: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            text-align: center;
             padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
 
-        .record-section h4 {
-            margin-top: 0;
+        .cat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+
+        /* Estilo para CTI com indicador de atenção clínica */
+        .cat-card.status-cti {
+            border: 1.5px solid rgba(59, 130, 246, 0.3);
+            animation: border-pulse 3s infinite;
+        }
+
+        @keyframes border-pulse {
+            0% { border-color: rgba(59, 130, 246, 0.3); }
+            50% { border-color: rgba(59, 130, 246, 0.8); }
+            100% { border-color: rgba(59, 130, 246, 0.3); }
+        }
+
+        .cat-card img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #f1f5f9;
+        }
+
+        .cat-card .placeholder-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 15px auto;
+            border: 3px solid #e2e8f0;
+        }
+
+        .cat-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.2rem;
             color: #1e293b;
-            border-bottom: 1px solid #cbd5e1;
-            padding-bottom: 6px;
-            font-size: 1.1rem;
         }
 
-        .badge-status {
+        .cat-card p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .cat-card .badge-status {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            margin-top: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: bold;
             color: #fff;
         }
 
         .badge-cti { background-color: var(--cti-color); }
         .badge-gatil { background-color: var(--success-color); }
-        .badge-obito { background-color: #1e293b; }
 
-        /* Grid layouts */
-        .grid-3 {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
+        /* MODAL GERAL (Fundo Desfocado) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Miniatura redonda para as tabelas */
-        .table-avatar {
-            width: 36px;
-            height: 36px;
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: #64748b;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+        }
+
+        /* Estrutura do Prontuário Individual */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .profile-header img {
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             object-fit: cover;
-            vertical-align: middle;
-            margin-right: 8px;
-            border: 1px solid var(--border-color);
+            border: 3px solid var(--primary-color);
         }
 
-        .table-avatar-placeholder {
+        .profile-header .placeholder-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border: 3px solid #e2e8f0;
+        }
+
+        .profile-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .profile-block {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .profile-block h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 8px;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeline-item {
+            font-size: 0.9rem;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .timeline-item:last-child {
+            border: none;
+        }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: #f1f5f9;
-            font-size: 1.2rem;
-            vertical-align: middle;
-            margin-right: 8px;
+            gap: 8px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .action-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            justify-content: flex-end;
+        }
+
+        /* Spinner */
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Entrada Suave de Elemento (Fade In Up) */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 768px) {
@@ -330,14 +440,12 @@
                 width: 100%;
                 height: auto;
                 position: relative;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding: 15px;
+                padding: 20px;
             }
             main {
                 padding: 20px;
             }
-            .grid-3 {
+            .profile-columns {
                 grid-template-columns: 1fr;
             }
         }
@@ -345,40 +453,23 @@
 </head>
 <body>
 
-    <div id="auth-container">
-        <div class="auth-card">
-            <h1>🐱 FelisHub</h1>
-            <p>Aceda para gerir o abrigo em tempo real</p>
-            <form id="login-form" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" id="auth-email" required placeholder="seuemail@exemplo.com">
-                </div>
-                <div class="form-group">
-                    <label>Palavra-passe</label>
-                    <input type="password" id="auth-password" required placeholder="••••••••">
-                </div>
-                <button type="submit" class="btn-submit" style="width:100%; margin-bottom:10px;">Entrar</button>
-                <button type="button" class="btn-submit" onclick="handleSignUp()" style="width:100%; background-color:#64748b;">Criar Conta</button>
-            </form>
-        </div>
-    </div>
-
+    <!-- Sidebar de Navegação Simplificada -->
     <aside id="app-sidebar">
         <div>
             <h1>🐱 FelisHub</h1>
             <p class="subtitle">Gestão para Abrigos Felinos</p>
-            <hr style="margin-bottom: 15px; border: 0; border-top: 1px solid var(--border-color);">
-            <button class="tab-btn active" onclick="switchTab('internacao')">🏥 Internação</button>
-            <button class="tab-btn" onclick="switchTab('pesquisar')">🔍 Pesquisar</button>
-            <button class="tab-btn" onclick="switchTab('medicacoes')">💊 Medicações</button>
-            <button class="tab-btn" onclick="switchTab('exames')">🧪 Exames Feitos</button>
-            <button class="tab-btn" onclick="switchTab('movimentacoes')">🔄 Movimentações</button>
-            <button class="tab-btn" onclick="switchTab('prontuarios')">📋 Prontuário Individual</button>
-        </div>
+            <hr style="margin-bottom: 20px; border: 0; border-top: 1px solid var(--border-color);">
+            
+            <button class="tab-btn active" onclick="switchTab('gatil')">
+                <i class="fa-solid fa-cat"></i> 🐈 Gatil
+            </button>
+            <button class="tab-btn" onclick="switchTab('cti')">
+                <i class="fa-solid fa-hospital"></i> 🏥 CTI
+            </button>
 
-        <div style="margin-top: 20px;">
-            <button class="btn-backup" onclick="handleLogout()" style="width:100%; color:var(--danger-color); border-color:var(--danger-color);">🚪 Sair do Sistema</button>
+            <button class="btn-admit-trigger" onclick="openAdmitModal()">
+                <i class="fa-solid fa-plus-circle"></i> Admitir Gato
+            </button>
         </div>
 
         <div class="sidebar-footer">
@@ -386,311 +477,162 @@
         </div>
     </aside>
 
+    <!-- Conteúdo Principal -->
     <main id="app-main">
         
-        <div id="tab-internacao" class="section active">
-            <h2>🏥 Unidade de Internação e Triagem</h2>
-            <p>Admitir e gerir leitos ativos no CTI e alojamentos comuns no Gatil.</p>
+        <!-- 1. ABA GATIL -->
+        <div id="tab-gatil" class="section active">
+            <div class="search-bar-container">
+                <div class="search-input-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search-gatil" onkeyup="filterCats('Gatil')" placeholder="Pesquisar por nome ou microchip no Gatil...">
+                </div>
+            </div>
             
-            <div class="record-section">
-                <h4>Nova Admissão</h4>
-                <form id="form-admissao" onsubmit="admitPatient(event)">
-                    <div class="grid-3">
-                        <div class="form-group">
-                            <label>Número do Microchip *</label>
-                            <input type="text" id="adm-chip" required placeholder="Ex: 981020000...">
-                        </div>
-                        <div class="form-group">
-                            <label>Nome do Gato *</label>
-                            <input type="text" id="adm-name" required placeholder="Ex: Mingau">
-                        </div>
-                        <div class="form-group">
-                            <label>Idade Aproximada</label>
-                            <input type="text" id="adm-age" placeholder="Ex: 2 anos">
-                        </div>
-                    </div>
-                    <div class="grid-3">
-                        <div class="form-group">
-                            <label>Prontuário Inicial / Observações</label>
-                            <input type="text" id="adm-obs" placeholder="Motivo da entrada ou estado comportamental">
-                        </div>
-                        <div class="form-group">
-                            <label>Foto do Gatinho</label>
-                            <input type="file" id="adm-photo" accept="image/*">
-                        </div>
-                        <div class="form-group">
-                            <label>Setor de Entrada *</label>
-                            <select id="adm-sector">
-                                <option value="CTI">🏥 Unidade de Terapia Intensiva (CTI)</option>
-                                <option value="Gatil">🐈 Alojamento Comum (Gatil)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-submit">Confirmar Admissão</button>
-                </form>
+            <div class="cats-grid" id="grid-gatil">
+                <!-- Injetado dinamicamente -->
             </div>
-
-            <h3>Fila de Leitos - CTI</h3>
-            <table style="margin-bottom: 30px;">
-                <thead>
-                    <tr>
-                        <th>Paciente</th>
-                        <th>Microchip</th>
-                        <th>Idade</th>
-                        <th>Status</th>
-                        <th>Ações rápidas</th>
-                    </tr>
-                </thead>
-                <tbody id="table-cti-body"></tbody>
-            </table>
-
-            <h3>Fila de Alojamento - Gatil</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Paciente</th>
-                        <th>Microchip</th>
-                        <th>Idade</th>
-                        <th>Status</th>
-                        <th>Ações rápidas</th>
-                    </tr>
-                </thead>
-                <tbody id="table-gatil-body"></tbody>
-            </table>
         </div>
 
-        <div id="tab-pesquisar" class="section">
-            <h2>🔍 Pesquisar Gatinho no Banco de Dados</h2>
-            <p>Pesquise rapidamente por qualquer paciente utilizando o nome ou o número do microchip.</p>
-
-            <div class="record-section">
-                <div class="form-group">
-                    <label for="search-input">Pesquisar por Nome ou Microchip:</label>
-                    <input type="text" id="search-input" onkeyup="searchCats()" placeholder="Comece a digitar para pesquisar em tempo real...">
+        <!-- 2. ABA CTI -->
+        <div id="tab-cti" class="section">
+            <div class="search-bar-container">
+                <div class="search-input-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search-cti" onkeyup="filterCats('CTI')" placeholder="Pesquisar por nome ou microchip no CTI...">
                 </div>
             </div>
 
-            <h3>Resultado da Pesquisa</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Paciente</th>
-                        <th>Microchip</th>
-                        <th>Idade</th>
-                        <th>Setor Atual</th>
-                        <th>Última Atualização</th>
-                    </tr>
-                </thead>
-                <tbody id="table-search-body">
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: #64748b;">Digite algo no campo acima para pesquisar...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="tab-medicacoes" class="section">
-            <h2>💊 Prescrições e Registro de Medicações</h2>
-            <p>Prescreva novos medicamentos ou controle os tratamentos ativos em andamento.</p>
-
-            <div class="record-section">
-                <h4>Nova Prescrição</h4>
-                <form id="form-med" onsubmit="prescribeMedication(event)">
-                    <div class="grid-3">
-                        <div class="form-group">
-                            <label>Selecione o Gato *</label>
-                            <select id="med-cat-select" required></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Medicamento e Dosagem *</label>
-                            <input type="text" id="med-name" required placeholder="Ex: Meloxicam 0.2mg">
-                        </div>
-                        <div class="form-group">
-                            <label>Frequência *</label>
-                            <input type="text" id="med-freq" required placeholder="Ex: 12h/12h ou dose única">
-                        </div>
-                    </div>
-                    <div class="grid-3">
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Início / Fim *</label>
-                            <input type="text" id="med-period" required placeholder="Ex: 15/07 a 22/07 ou Contínuo">
-                        </div>
-                        <div class="form-group" style="align-self: end; margin-bottom: 16px;">
-                            <button type="submit" class="btn-submit" style="width: 100%;">Registrar Medicação</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <h3>Tratamentos Ativos no Abrigo</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Paciente</th>
-                        <th>Setor</th>
-                        <th>Medicamento</th>
-                        <th>Frequência</th>
-                        <th>Início/Fim</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="table-meds-body"></tbody>
-            </table>
-        </div>
-
-        <div id="tab-exames" class="section">
-            <h2>🧪 Histórico de Exames Laboratoriais</h2>
-            <p>Registe exames realizados pelos pacientes para manter o acompanhamento clínico em dia.</p>
-
-            <div class="record-section">
-                <h4>Registrar Exame Realizado</h4>
-                <form id="form-exam" onsubmit="recordExam(event)">
-                    <div class="grid-3">
-                        <div class="form-group">
-                            <label>Selecione o Gato *</label>
-                            <select id="exam-cat-select" required></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Tipo de Exame *</label>
-                            <input type="text" id="exam-type" required placeholder="Ex: Hemograma completo, Teste FIV/FeLV, Eco">
-                        </div>
-                        <div class="form-group">
-                            <label>Resultado / Laudo Clínico *</label>
-                            <input type="text" id="exam-result" required placeholder="Ex: Reagente para FeLV, Sem alterações na série vermelha">
-                        </div>
-                    </div>
-                    <div class="grid-3" style="grid-template-columns: 2fr 1fr;">
-                        <div class="form-group">
-                            <label>Anexar Laudo (PDF) - Opcional</label>
-                            <input type="file" id="exam-pdf" accept="application/pdf">
-                        </div>
-                        <div class="form-group" style="align-self: end; margin-bottom: 16px;">
-                            <button type="submit" class="btn-submit" style="width: 100%;">Salvar Exame no Prontuário</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <h3>Exames Recentes</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Paciente</th>
-                        <th>Exame</th>
-                        <th>Resultado</th>
-                        <th>Anexo</th>
-                    </tr>
-                </thead>
-                <tbody id="table-exams-body"></tbody>
-            </table>
-        </div>
-
-        <div id="tab-movimentacoes" class="section">
-            <h2>🔄 Registro de Movimentações de Sala (CTI/Gatil)</h2>
-            <p>Monitorize a rotatividade e histórico de mudanças de setor dos pacientes dentro do abrigo.</p>
-
-            <div class="record-section">
-                <h4>Registrar Nova Movimentação</h4>
-                <form id="form-move" onsubmit="moveRoom(event)">
-                    <div class="grid-3">
-                        <div class="form-group">
-                            <label>Selecione o Gato *</label>
-                            <select id="move-cat-select" onchange="updateCurrentSectorLabel()" required></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Setor Atual</label>
-                            <input type="text" id="move-current-sector" disabled style="background-color: #f1f5f9;">
-                        </div>
-                        <div class="form-group">
-                            <label>Destino de Transferência *</label>
-                            <select id="move-dest-sector">
-                                <option value="CTI">🏥 CTI (Terapia Intensiva)</option>
-                                <option value="Gatil">🐈 Gatil (Alojamento Comum)</option>
-                                <option value="Óbito">💀 Registrar Óbito</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-submit">Confirmar Movimentação</button>
-                </form>
-            </div>
-
-            <h3>Histórico de Transferências</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Paciente</th>
-                        <th>Origem ➡️ Destino</th>
-                        <th>Responsável</th>
-                    </tr>
-                </thead>
-                <tbody id="table-movements-body"></tbody>
-            </table>
-        </div>
-
-        <div id="tab-prontuarios" class="section">
-            <h2>📋 Prontuário Clínico Individual</h2>
-            <p>Selecione um paciente para carregar a sua ficha médica integrada de forma consolidada.</p>
-
-            <div class="form-group" style="max-width: 400px; margin-bottom: 30px;">
-                <label>Pesquisar Paciente no Banco de Dados:</label>
-                <select id="patient-search-select" onchange="loadIndividualPatientProfile()">
-                    <option value="">-- Escolha um Paciente --</option>
-                </select>
-            </div>
-
-            <div id="individual-profile-card" style="display: none;">
-                <div class="record-section" style="border-left: 5px solid var(--primary-color);">
-                    <div style="display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-                        <div style="display: flex; gap: 18px; align-items: center;">
-                            <img id="prof-photo" src="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); display: none;">
-                            <div id="prof-photo-placeholder" class="table-avatar-placeholder" style="width: 80px; height: 80px; font-size: 2.5rem; margin-right: 0;">🐱</div>
-                            <div>
-                                <h2 id="prof-name" style="border: none; margin: 0 0 5px 0; padding: 0;">-</h2>
-                                <p style="margin: 0; color: #64748b;">
-                                    Microchip: <strong id="prof-chip">-</strong> | Idade Estimada: <strong id="prof-age">-</strong>
-                                </p>
-                            </div>
-                        </div>
-                        <span id="prof-badge" class="badge-status">-</span>
-                    </div>
-                </div>
-
-                <div class="grid-3" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="record-section">
-                        <h4>📋 Evoluções Clínicas</h4>
-                        <div id="prof-history" style="max-height: 250px; overflow-y: auto; background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;">
-                        </div>
-                        <div class="form-group" style="margin-top: 12px;">
-                            <textarea id="prof-new-evolution" rows="2" placeholder="Nova anotação clínica..."></textarea>
-                            <button class="btn-submit" onclick="addProfileEvolution()" style="margin-top: 8px; font-size: 0.85rem; padding: 6px 12px;">Anotar Evolução</button>
-                        </div>
-                    </div>
-
-                    <div class="record-section">
-                        <h4>💊 Tratamentos e Receitas</h4>
-                        <div id="prof-meds" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 12px;"></div>
-                        <button class="btn-submit" onclick="switchTab('medicacoes')" style="font-size: 0.85rem; padding: 6px 12px;">Ir para Prescrições</button>
-                    </div>
-                </div>
-
-                <div class="grid-3" style="grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-                    <div class="record-section">
-                        <h4>🧪 Laudo de Exames</h4>
-                        <div id="prof-exams" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;"></div>
-                    </div>
-
-                    <div class="record-section">
-                        <h4>🔄 Movimentações de Setor</h4>
-                        <div id="prof-moves" style="background-color: #f8fafc; padding: 12px; border-radius: 6px; font-size: 0.9rem;"></div>
-                    </div>
-                </div>
+            <div class="cats-grid" id="grid-cti">
+                <!-- Injetado dinamicamente -->
             </div>
         </div>
 
     </main>
 
+    <!-- MODAL 1: CADASTRO / ADMISSÃO DE GATO -->
+    <div class="modal" id="modal-admissao">
+        <div class="modal-content animate__animated animate__zoomIn">
+            <button class="close-modal" onclick="closeAdmitModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-top:0;"><i class="fa-solid fa-circle-plus" style="color:var(--primary-color);"></i> Nova Admissão de Paciente</h2>
+            <form id="form-admissao" onsubmit="admitPatient(event)">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div>
+                        <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">Número do Microchip *</label>
+                        <input type="text" id="adm-chip" required placeholder="Ex: 981020000...">
+                    </div>
+                    <div>
+                        <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">Nome do Gato *</label>
+                        <input type="text" id="adm-name" required placeholder="Ex: Mingau">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div>
+                        <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">Idade Aproximada</label>
+                        <input type="text" id="adm-age" placeholder="Ex: 2 anos">
+                    </div>
+                    <div>
+                        <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">Setor de Entrada *</label>
+                        <select id="adm-sector">
+                            <option value="Gatil">🐈 Alojamento Comum (Gatil)</option>
+                            <option value="CTI">🏥 Unidade de Terapia Intensiva (CTI)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">Foto do Gatinho</label>
+                    <input type="file" id="adm-photo" accept="image/*">
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="font-weight:bold; font-size:0.85rem; display:block; margin-bottom:5px;">Observações Iniciais</label>
+                    <textarea id="adm-obs" rows="2" placeholder="Motivo da entrada..."></textarea>
+                </div>
+                <div style="text-align:right;">
+                    <button type="submit" id="btn-admitir" class="btn-submit">
+                        <i class="fa-solid fa-check"></i> Salvar Admissão
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: PRONTUÁRIO INDIVIDUAL COMPLETO -->
+    <div class="modal" id="modal-prontuario">
+        <div class="modal-content animate__animated animate__zoomIn" style="max-width: 900px;">
+            <button class="close-modal" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></button>
+            
+            <!-- Cabeçalho com dados e Avatar -->
+            <div class="profile-header">
+                <div id="prof-avatar-container"></div>
+                <div>
+                    <h2 id="prof-name" style="margin:0; font-size:1.8rem; border:none; padding:0;">-</h2>
+                    <p style="margin: 3px 0 0 0; color:#64748b;">
+                        Microchip: <strong id="prof-chip" style="color:var(--text-color);">-</strong> | 
+                        Idade Estimada: <strong id="prof-age" style="color:var(--text-color);">-</strong>
+                    </p>
+                </div>
+                <div style="margin-left: auto;">
+                    <span id="prof-status-badge" class="badge-status">-</span>
+                </div>
+            </div>
+
+            <!-- Corpo em Duas Colunas -->
+            <div class="profile-columns">
+                
+                <!-- Coluna Esquerda: Histórico e Evoluções -->
+                <div class="profile-block">
+                    <h4><i class="fa-solid fa-clock-rotate-left"></i> Histórico / Linha do Tempo</h4>
+                    <div id="prof-history-list" style="max-height: 220px; overflow-y: auto; margin-bottom: 15px; padding-right:5px;">
+                        <!-- Injetado dinamicamente -->
+                    </div>
+                    <div>
+                        <textarea id="prof-new-evolution" rows="2" placeholder="Digitar nova evolução clínica..." style="margin-bottom: 10px; font-size: 0.85rem;"></textarea>
+                        <button class="btn-submit" onclick="addProfileEvolution()" style="font-size:0.85rem; padding:8px 16px;">
+                            <i class="fa-solid fa-plus"></i> Adicionar Evolução
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita: Medicações Prescritas -->
+                <div class="profile-block">
+                    <h4><i class="fa-solid fa-pills" style="color:var(--primary-color)"></i> Tratamentos e Medicações</h4>
+                    <div id="prof-meds-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;">
+                        <!-- Injetado dinamicamente -->
+                    </div>
+                    <div style="border-top:1px solid var(--border-color); padding-top:15px;">
+                        <h5 style="margin:0 0 10px 0; color:#475569;">Prescrever Medicamento:</h5>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                            <input type="text" id="new-med-name" placeholder="Meloxicam 0.2mg" style="font-size:0.85rem; padding:8px;">
+                            <input type="text" id="new-med-freq" placeholder="12h/12h" style="font-size:0.85rem; padding:8px;">
+                        </div>
+                        <input type="text" id="new-med-period" placeholder="Período: Ex 5 dias ou Contínuo" style="font-size:0.85rem; padding:8px; margin-bottom:10px;">
+                        <button class="btn-submit" onclick="addProfileMedication()" style="font-size:0.85rem; padding:8px 16px; width:100%;">
+                            <i class="fa-solid fa-prescription"></i> Adicionar Tratamento
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Rodapé com Ações Clínicas Rápidas (Movimentação, Óbito, Alta) -->
+            <div class="action-footer">
+                <span style="margin-right:auto; align-self:center; font-size:0.85rem; color:#64748b;">
+                    Ações de Fluxo de Leito:
+                </span>
+                <button id="btn-toggle-sector" class="btn-submit" style="background-color:#64748b;" onclick="togglePatientSector()">
+                    <i class="fa-solid fa-right-left"></i> Transferir Setor
+                </button>
+                <button class="btn-submit btn-danger" onclick="confirmDeath()">
+                    <i class="fa-solid fa-skull"></i> Registrar Óbito
+                </button>
+                <button class="btn-submit" style="background-color: var(--success-color);" onclick="confirmDischarge()">
+                    <i class="fa-solid fa-circle-check"></i> Dar Alta do Abrigo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
     <script>
         // ==========================================
         // CONFIGURAÇÃO DO SUPABASE (INSIRA SEUS DADOS AQUI!)
@@ -702,57 +644,16 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let cats = [];
+        let activeCat = null; // Guarda o gato aberto no modal atualmente
 
-        // Verifica o estado da Autenticação do Utilizador
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                // Logado
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-sidebar').style.display = 'flex';
-                document.getElementById('app-main').style.display = 'block';
-                startRealtimeSubscription();
-                fetchCatsData();
-            } else {
-                // Deslogado
-                document.getElementById('auth-container').style.display = 'flex';
-                document.getElementById('app-sidebar').style.display = 'none';
-                document.getElementById('app-main').style.display = 'none';
-            }
+        // Ao abrir a aplicação, fazemos o carregamento automático
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchCatsData();
+            startRealtimeSubscription();
         });
 
-        // Eventos de Autenticação
-        async function handleLogin(event) {
-            event.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) alert("Erro ao fazer login: " + error.message);
-        }
-
-        async function handleSignUp() {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-
-            if (!email || !password) {
-                alert("Preencha o e-mail e a palavra-passe primeiro para criar a conta.");
-                return;
-            }
-
-            const { error } = await supabaseClient.auth.signUp({ email, password });
-            if (error) {
-                alert("Erro ao criar conta: " + error.message);
-            } else {
-                alert("Conta criada com sucesso! Se configurou confirmação por e-mail, verifique a sua caixa de entrada.");
-            }
-        }
-
-        async function handleLogout() {
-            await supabaseClient.auth.signOut();
-        }
-
         // ==========================================
-        // SINCRONIZAÇÃO EM TEMPO REAL E LEITURA (SUPABASE)
+        // LEITURA DOS DADOS (SUPABASE)
         // ==========================================
         async function fetchCatsData() {
             const { data, error } = await supabaseClient
@@ -765,7 +666,6 @@
                 return;
             }
 
-            // Normaliza as colunas de snake_case (Postgres) para camelCase (sistema JS existente)
             cats = data.map(item => ({
                 id: item.id,
                 chip: item.chip,
@@ -780,16 +680,21 @@
                 updatedAt: item.updated_at
             }));
 
-            populateCatDropdowns();
-            renderAllTables();
+            renderGrids();
             
-            if (document.getElementById('patient-search-select').value) {
-                loadIndividualPatientProfile();
+            // Se o prontuário estiver aberto, recarrega a tela para atualizar as infos dele em tempo real
+            if (activeCat) {
+                const refreshed = cats.find(c => c.chip === activeCat.chip);
+                if (refreshed) {
+                    activeCat = refreshed;
+                    loadActiveCatProfile();
+                } else {
+                    closeProfileModal();
+                }
             }
         }
 
         function startRealtimeSubscription() {
-            // Escuta atualizações e inserções no banco em tempo real de qualquer utilizador
             supabaseClient
                 .channel('schema-db-changes')
                 .on(
@@ -803,7 +708,6 @@
         }
 
         async function saveCatToSupabase(catObj) {
-            // Prepara o objeto para as colunas SQL corretas
             const dbPayload = {
                 chip: catObj.chip,
                 name: catObj.name,
@@ -818,14 +722,12 @@
             };
 
             if (catObj.id) {
-                // Atualização
                 const { error } = await supabaseClient
                     .from('cats')
                     .update(dbPayload)
                     .eq('id', catObj.id);
                 if (error) alert("Erro ao atualizar dados: " + error.message);
             } else {
-                // Criação
                 const { error } = await supabaseClient
                     .from('cats')
                     .insert([dbPayload]);
@@ -834,8 +736,253 @@
         }
 
         // ==========================================
-        // FLUXO DE COMPRESSÃO E ADMISSÃO
+        // RENDERIZAÇÃO DOS CARD DE GATOS
         // ==========================================
+        function renderGrids() {
+            const gridGatil = document.getElementById('grid-gatil');
+            const gridCti = document.getElementById('grid-cti');
+
+            gridGatil.innerHTML = '';
+            gridCti.innerHTML = '';
+
+            let countGatil = 0;
+            let countCti = 0;
+
+            cats.forEach(cat => {
+                if (cat.status !== 'Gatil' && cat.status !== 'CTI') return; // Filtra altas/óbitos fora do grid ativo
+
+                const card = document.createElement('div');
+                card.className = `cat-card ${cat.status === 'CTI' ? 'status-cti' : ''} animate__animated animate__fadeIn`;
+                card.onclick = () => openProfileModal(cat);
+
+                const photoHTML = cat.photo 
+                    ? `<img src="${cat.photo}" alt="Foto de ${cat.name}">`
+                    : `<div class="placeholder-avatar"><i class="fa-solid fa-cat"></i></div>`;
+
+                card.innerHTML = `
+                    ${photoHTML}
+                    <h3>${cat.name}</h3>
+                    <p>Microchip: <strong>${cat.chip}</strong></p>
+                    <p>Idade: ${cat.age || 'Não informada'}</p>
+                    <span class="badge-status ${cat.status === 'CTI' ? 'badge-cti' : 'badge-gatil'}">${cat.status}</span>
+                `;
+
+                if (cat.status === 'Gatil') {
+                    gridGatil.appendChild(card);
+                    countGatil++;
+                } else if (cat.status === 'CTI') {
+                    gridCti.appendChild(card);
+                    countCti++;
+                }
+            });
+
+            if (countGatil === 0) {
+                gridGatil.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #64748b;">Nenhum gatinho no Gatil no momento.</p>`;
+            }
+            if (countCti === 0) {
+                gridCti.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #64748b;">Nenhum gatinho em terapia intensiva no momento.</p>`;
+            }
+        }
+
+        // Filtro em tempo real digitando
+        function filterCats(sector) {
+            const query = document.getElementById(`search-${sector.toLowerCase()}`).value.toLowerCase().trim();
+            const cards = document.querySelectorAll(`#grid-${sector.toLowerCase()} .cat-card`);
+
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // ==========================================
+        // FLUXO DOS MODAIS
+        // ==========================================
+        function openAdmitModal() {
+            document.getElementById('modal-admissao').style.display = 'flex';
+        }
+
+        function closeAdmitModal() {
+            document.getElementById('modal-admissao').style.display = 'none';
+            document.getElementById('form-admissao').reset();
+        }
+
+        function openProfileModal(cat) {
+            activeCat = cat;
+            document.getElementById('modal-prontuario').style.display = 'flex';
+            loadActiveCatProfile();
+        }
+
+        function closeProfileModal() {
+            document.getElementById('modal-prontuario').style.display = 'none';
+            activeCat = null;
+        }
+
+        // ==========================================
+        // CARREGAMENTO DO PRONTUÁRIO COMPLETO
+        // ==========================================
+        function loadActiveCatProfile() {
+            if (!activeCat) return;
+
+            // Header do Gato
+            document.getElementById('prof-name').innerText = activeCat.name;
+            document.getElementById('prof-chip').innerText = activeCat.chip;
+            document.getElementById('prof-age').innerText = activeCat.age || 'Não informada';
+            
+            const avatarContainer = document.getElementById('prof-avatar-container');
+            avatarContainer.innerHTML = activeCat.photo
+                ? `<img src="${activeCat.photo}" alt="Foto de ${activeCat.name}">`
+                : `<div class="placeholder-avatar"><i class="fa-solid fa-cat"></i></div>`;
+
+            const badge = document.getElementById('prof-status-badge');
+            badge.innerText = activeCat.status;
+            badge.className = `badge-status ${activeCat.status === 'CTI' ? 'badge-cti' : 'badge-gatil'}`;
+
+            // Botão rápido de Toggle de Setor
+            const btnSector = document.getElementById('btn-toggle-sector');
+            btnSector.innerHTML = activeCat.status === 'Gatil' 
+                ? `<i class="fa-solid fa-hospital"></i> Mover para CTI`
+                : `<i class="fa-solid fa-cat"></i> Mover para Gatil`;
+
+            // Histórico / Linha do tempo
+            const historyList = document.getElementById('prof-history-list');
+            const history = activeCat.history || [];
+            historyList.innerHTML = history.map(h => `
+                <div class="timeline-item">
+                    ${h}
+                </div>
+            `).reverse().join('') || '<p style="color:#64748b; font-size:0.85rem;">Sem anotações registradas.</p>';
+
+            // Medicações Ativas
+            const medsList = document.getElementById('prof-meds-list');
+            const medications = activeCat.medications || [];
+            medsList.innerHTML = medications.map((med, index) => `
+                <div style="padding: 10px; background-color: #fff; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="font-size:0.9rem;">${med.name}</strong><br>
+                        <span style="font-size:0.8rem; color:#64748b;">${med.freq} - ${med.period}</span>
+                    </div>
+                    <button onclick="removeProfileMedication(${index})" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-size:0.85rem;">
+                        <i class="fa-solid fa-ban"></i> Suspender
+                    </button>
+                </div>
+            `).join('') || '<p style="color:#64748b; font-size:0.85rem;">Nenhum tratamento ativo no momento.</p>';
+        }
+
+        // Adicionar Evolução
+        async function addProfileEvolution() {
+            const input = document.getElementById('prof-new-evolution');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const today = new Date().toLocaleDateString('pt-BR');
+            activeCat.history = activeCat.history || [];
+            activeCat.history.push(`${today}: ${text}`);
+            activeCat.updatedAt = today;
+
+            await saveCatToSupabase(activeCat);
+            input.value = '';
+            loadActiveCatProfile();
+        }
+
+        // Adicionar Medicação Direto no Perfil
+        async function addProfileMedication() {
+            const name = document.getElementById('new-med-name').value.trim();
+            const freq = document.getElementById('new-med-freq').value.trim();
+            const period = document.getElementById('new-med-period').value.trim() || 'Contínuo';
+
+            if (!name || !freq) {
+                alert("Preencha o Nome e a Frequência da medicação!");
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('pt-BR');
+            activeCat.medications = activeCat.medications || [];
+            activeCat.medications.push({ name, freq, period });
+            
+            activeCat.history = activeCat.history || [];
+            activeCat.history.push(`${today}: Prescrito ${name} (${freq} - Período: ${period})`);
+            activeCat.updatedAt = today;
+
+            await saveCatToSupabase(activeCat);
+            
+            document.getElementById('new-med-name').value = '';
+            document.getElementById('new-med-freq').value = '';
+            document.getElementById('new-med-period').value = '';
+            loadActiveCatProfile();
+        }
+
+        // Suspender Medicação
+        async function removeProfileMedication(index) {
+            if (!activeCat) return;
+            const today = new Date().toLocaleDateString('pt-BR');
+            const removed = activeCat.medications.splice(index, 1)[0];
+            
+            activeCat.history.push(`${today}: Suspenso medicamento ${removed.name}.`);
+            activeCat.updatedAt = today;
+
+            await saveCatToSupabase(activeCat);
+            loadActiveCatProfile();
+        }
+
+        // ==========================================
+        // AÇÕES DE FLUXO E ALTA DO ABRIGO
+        // ==========================================
+        async function togglePatientSector() {
+            if (!activeCat) return;
+            const today = new Date().toLocaleDateString('pt-BR');
+            const origin = activeCat.status;
+            const dest = origin === 'Gatil' ? 'CTI' : 'Gatil';
+
+            activeCat.status = dest;
+            activeCat.updatedAt = today;
+            activeCat.movements.push({ from: origin, to: dest, date: today });
+            activeCat.history.push(`${today}: Transferência de setor de ${origin} para ${dest}.`);
+
+            await saveCatToSupabase(activeCat);
+            loadActiveCatProfile();
+            alert(`${activeCat.name} transferido para o ${dest}!`);
+        }
+
+        async function confirmDeath() {
+            if (!activeCat) return;
+            if (confirm(`Tem certeza de que deseja registrar o óbito do gatinho ${activeCat.name}? Esta ação irá removê-lo da fila de leitos ativos.`)) {
+                const today = new Date().toLocaleDateString('pt-BR');
+                const origin = activeCat.status;
+                
+                activeCat.status = 'Óbito';
+                activeCat.updatedAt = today;
+                activeCat.movements.push({ from: origin, to: 'Óbito', date: today });
+                activeCat.history.push(`${today}: Óbito confirmado no setor ${origin}.`);
+
+                await saveCatToSupabase(activeCat);
+                closeProfileModal();
+                alert(`Óbito do gatinho ${activeCat.name} registrado.`);
+            }
+        }
+
+        async function confirmDischarge() {
+            if (!activeCat) return;
+            if (confirm(`Confirmar alta médica/Adoção de ${activeCat.name}?`)) {
+                const today = new Date().toLocaleDateString('pt-BR');
+                const origin = activeCat.status;
+                
+                activeCat.status = 'Alta';
+                activeCat.updatedAt = today;
+                activeCat.movements.push({ from: origin, to: 'Alta', date: today });
+                activeCat.history.push(`${today}: Paciente recebeu alta ou foi adotado saindo do setor ${origin}.`);
+
+                await saveCatToSupabase(activeCat);
+                closeProfileModal();
+                alert(`Alta realizada com sucesso para ${activeCat.name}!`);
+            }
+        }
+
+        // Compression Helper
         function compressAndResizeImage(file, callback) {
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -864,7 +1011,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6); // 60% qualidade para otimizar tamanho no Postgres
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
                     callback(compressedBase64);
                 };
                 img.src = event.target.result;
@@ -872,8 +1019,13 @@
             reader.readAsDataURL(file);
         }
 
-        function admitPatient(event) {
+        // Admissão
+        async function admitPatient(event) {
             event.preventDefault();
+            const btn = document.getElementById('btn-admitir');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch spinner"></i> Carregando...`;
+
             const chip = document.getElementById('adm-chip').value.trim();
             const name = document.getElementById('adm-name').value.trim();
             const age = document.getElementById('adm-age').value.trim();
@@ -883,40 +1035,40 @@
 
             if (cats.some(c => c.chip === chip)) {
                 alert("Este Microchip já se encontra cadastrado!");
+                btn.innerHTML = originalHTML;
                 return;
             }
 
             const today = new Date().toLocaleDateString('pt-BR');
 
-            const saveNewCat = (photoBase64 = null) => {
+            const saveNewCat = async (photoBase64 = null) => {
                 const newCat = {
                     chip,
                     name,
                     age,
                     status: sector,
                     photo: photoBase64,
-                    history: [obs ? `${today}: Admissão - ${obs}` : `${today}: Admissão no setor ${sector}.`],
+                    history: [obs ? `${today}: Entrada no Abrigo - ${obs}` : `${today}: Entrada no Abrigo no setor ${sector}.`],
                     medications: [],
                     exams: [],
                     movements: [{ from: "Admissão", to: sector, date: today }],
                     updatedAt: today
                 };
 
-                saveCatToSupabase(newCat);
-                document.getElementById('form-admissao').reset();
-                alert(`${name} admitido com sucesso no setor ${sector}!`);
+                await saveCatToSupabase(newCat);
+                btn.innerHTML = originalHTML;
+                closeAdmitModal();
+                alert(`${name} admitido com sucesso no ${sector}!`);
             };
 
             if (photoInput.files && photoInput.files[0]) {
                 compressAndResizeImage(photoInput.files[0], saveNewCat);
             } else {
-                saveNewCat(null);
+                await saveNewCat(null);
             }
         }
 
-        // ==========================================
-        // FLUXO DE INTERFACE DO SISTEMA
-        // ==========================================
+        // Controle de Abas Simples
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
@@ -925,431 +1077,6 @@
             if (activeBtn) activeBtn.classList.add('active');
 
             document.getElementById(`tab-${tabId}`).classList.add('active');
-
-            if (tabId === 'pesquisar') {
-                document.getElementById('search-input').value = '';
-                searchCats();
-            }
-
-            populateCatDropdowns();
-            renderAllTables();
-        }
-
-        function populateCatDropdowns() {
-            const dropdowns = [
-                'med-cat-select', 
-                'exam-cat-select', 
-                'move-cat-select', 
-                'patient-search-select'
-            ];
-
-            dropdowns.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                
-                const savedVal = el.value;
-                el.innerHTML = id === 'patient-search-select' 
-                    ? '<option value="">-- Escolha um Paciente --</option>' 
-                    : '<option value="">-- Selecione o Paciente --</option>';
-
-                cats.forEach(cat => {
-                    const opt = document.createElement('option');
-                    opt.value = cat.chip;
-                    opt.textContent = `${cat.name} (${cat.chip})`;
-                    el.appendChild(opt);
-                });
-
-                if (savedVal) el.value = savedVal;
-            });
-        }
-
-        function renderAllTables() {
-            renderInternmentTables();
-            renderMedicationTable();
-            renderExamsTable();
-            renderMovementsTable();
-        }
-
-        function getAvatarHTML(photoBase64) {
-            if (photoBase64) {
-                return `<img src="${photoBase64}" class="table-avatar" alt="Foto">`;
-            }
-            return `<div class="table-avatar-placeholder">🐱</div>`;
-        }
-
-        function renderInternmentTables() {
-            const ctiBody = document.getElementById('table-cti-body');
-            const gatilBody = document.getElementById('table-gatil-body');
-            
-            ctiBody.innerHTML = '';
-            gatilBody.innerHTML = '';
-
-            cats.forEach(cat => {
-                const tr = document.createElement('tr');
-                const avatar = getAvatarHTML(cat.photo);
-                
-                tr.innerHTML = `
-                    <td>
-                        ${avatar}
-                        <span class="clickable-link" onclick="openPatientProfileDirectly('${cat.chip}')">${cat.name}</span>
-                    </td>
-                    <td><strong>${cat.chip}</strong></td>
-                    <td>${cat.age || 'Não informada'}</td>
-                    <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
-                    <td>
-                        <button onclick="quickMove('${cat.chip}')" class="btn-submit" style="padding: 4px 8px; font-size: 0.8rem; background-color: #64748b;">Mover Setor</button>
-                    </td>
-                `;
-
-                if (cat.status === 'CTI') {
-                    ctiBody.appendChild(tr);
-                } else if (cat.status === 'Gatil') {
-                    gatilBody.appendChild(tr);
-                }
-            });
-        }
-
-        function getStatusClass(status) {
-            if (status === 'CTI') return 'badge-cti';
-            if (status === 'Gatil') return 'badge-gatil';
-            return 'badge-obito';
-        }
-
-        function searchCats() {
-            const query = document.getElementById('search-input').value.toLowerCase().trim();
-            const body = document.getElementById('table-search-body');
-            body.innerHTML = '';
-
-            if (cats.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">Nenhum gatinho cadastrado no sistema ainda.</td></tr>`;
-                return;
-            }
-
-            const filtered = cats.filter(cat => 
-                cat.name.toLowerCase().includes(query) || 
-                cat.chip.toLowerCase().includes(query)
-            );
-
-            if (filtered.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">Nenhum resultado encontrado para "${query}".</td></tr>`;
-                return;
-            }
-
-            filtered.forEach(cat => {
-                const tr = document.createElement('tr');
-                const avatar = getAvatarHTML(cat.photo);
-                tr.innerHTML = `
-                    <td>
-                        ${avatar}
-                        <span class="clickable-link" onclick="openPatientProfileDirectly('${cat.chip}')">${cat.name}</span>
-                    </td>
-                    <td><strong>${cat.chip}</strong></td>
-                    <td>${cat.age || 'Não informada'}</td>
-                    <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
-                    <td>${cat.updatedAt || 'Sem data'}</td>
-                `;
-                body.appendChild(tr);
-            });
-        }
-
-        function prescribeMedication(event) {
-            event.preventDefault();
-            const chip = document.getElementById('med-cat-select').value;
-            const name = document.getElementById('med-name').value.trim();
-            const freq = document.getElementById('med-freq').value.trim();
-            const period = document.getElementById('med-period').value.trim() || 'Contínuo';
-
-            const cat = cats.find(c => c.chip === chip);
-            if (!cat) return;
-
-            cat.medications = cat.medications || [];
-            cat.medications.push({ name, freq, period });
-            cat.updatedAt = new Date().toLocaleDateString('pt-BR');
-            
-            cat.history = cat.history || [];
-            cat.history.push(`${cat.updatedAt}: Prescrito ${name} (${freq} - Período: ${period})`);
-            
-            saveCatToSupabase(cat);
-            document.getElementById('form-med').reset();
-            alert(`Medicamento prescrito com sucesso para ${cat.name}!`);
-        }
-
-        function renderMedicationTable() {
-            const body = document.getElementById('table-meds-body');
-            body.innerHTML = '';
-
-            cats.forEach(cat => {
-                const meds = cat.medications || [];
-                meds.forEach((med, index) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${cat.name}</strong></td>
-                        <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
-                        <td>${med.name}</td>
-                        <td>${med.freq}</td>
-                        <td>${med.period || 'Não informado'}</td>
-                        <td>
-                            <button onclick="removeMedication('${cat.chip}', ${index})" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-weight:bold;">Suspender</button>
-                        </td>
-                    `;
-                    body.appendChild(tr);
-                });
-            });
-        }
-
-        function removeMedication(chip, index) {
-            const cat = cats.find(c => c.chip === chip);
-            if (cat) {
-                const removed = cat.medications.splice(index, 1)[0];
-                cat.updatedAt = new Date().toLocaleDateString('pt-BR');
-                cat.history.push(`${cat.updatedAt}: Suspenso medicamento ${removed.name}.`);
-                saveCatToSupabase(cat);
-            }
-        }
-
-        function recordExam(event) {
-            event.preventDefault();
-            const chip = document.getElementById('exam-cat-select').value;
-            const type = document.getElementById('exam-type').value.trim();
-            const result = document.getElementById('exam-result').value.trim();
-            const pdfInput = document.getElementById('exam-pdf');
-            const today = new Date().toLocaleDateString('pt-BR');
-
-            const cat = cats.find(c => c.chip === chip);
-            if (!cat) return;
-
-            const saveExamData = (pdfBase64 = null) => {
-                cat.exams = cat.exams || [];
-                cat.exams.push({ 
-                    type, 
-                    result, 
-                    date: today,
-                    pdf: pdfBase64 
-                });
-                cat.updatedAt = today;
-                cat.history = cat.history || [];
-                cat.history.push(`${today}: Realizado exame ${type}. Resultado: ${result}${pdfBase64 ? ' (Laudo PDF Anexado)' : ''}`);
-
-                saveCatToSupabase(cat);
-                document.getElementById('form-exam').reset();
-                alert(`Exame registrado com sucesso!`);
-            };
-
-            if (pdfInput.files && pdfInput.files[0]) {
-                const file = pdfInput.files[0];
-                if (file.size > 800 * 1024) { // Limite preventivo ideal para base de dados Supabase
-                    alert("Atenção: O PDF selecionado é muito grande! Escolha um arquivo menor que 800KB.");
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    saveExamData(e.target.result);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                saveExamData();
-            }
-        }
-
-        function renderExamsTable() {
-            const body = document.getElementById('table-exams-body');
-            body.innerHTML = '';
-
-            cats.forEach(cat => {
-                const exams = cat.exams || [];
-                exams.forEach(exam => {
-                    const tr = document.createElement('tr');
-                    
-                    let pdfBtn = '<em>Nenhum</em>';
-                    if (exam.pdf) {
-                        pdfBtn = `<button onclick="viewExamPDF('${exam.pdf}')" class="btn-view-pdf">📄 Ver PDF</button>`;
-                    }
-
-                    tr.innerHTML = `
-                        <td>${exam.date}</td>
-                        <td><strong>${cat.name}</strong></td>
-                        <td>${exam.type}</td>
-                        <td>${exam.result}</td>
-                        <td>${pdfBtn}</td>
-                    `;
-                    body.appendChild(tr);
-                });
-            });
-        }
-
-        function viewExamPDF(base64Data) {
-            const newWindow = window.open();
-            if (newWindow) {
-                newWindow.document.write(`
-                    <html>
-                        <head><title>Laudo de Exame</title></head>
-                        <body style="margin:0;">
-                            <embed width="100%" height="100%" src="${base64Data}" type="application/pdf">
-                        </body>
-                    </html>
-                `);
-            } else {
-                alert("O navegador bloqueou a abertura do PDF em nova aba. Por favor, permita pop-ups para este site.");
-            }
-        }
-
-        function updateCurrentSectorLabel() {
-            const chip = document.getElementById('move-cat-select').value;
-            const label = document.getElementById('move-current-sector');
-            const cat = cats.find(c => c.chip === chip);
-            label.value = cat ? cat.status : '';
-        }
-
-        function moveRoom(event) {
-            event.preventDefault();
-            const chip = document.getElementById('move-cat-select').value;
-            const dest = document.getElementById('move-dest-sector').value;
-            const today = new Date().toLocaleDateString('pt-BR');
-
-            const cat = cats.find(c => c.chip === chip);
-            if (!cat) return;
-
-            if (cat.status === dest) {
-                alert(`O paciente ${cat.name} já se encontra no setor ${dest}!`);
-                return;
-            }
-
-            const from = cat.status;
-            cat.status = dest;
-            cat.updatedAt = today;
-            cat.movements = cat.movements || [];
-            cat.movements.push({ from, to: dest, date: today });
-            cat.history = cat.history || [];
-            cat.history.push(`${today}: Transferência de setor de ${from} para ${dest}.`);
-
-            saveCatToSupabase(cat);
-            document.getElementById('form-move').reset();
-            document.getElementById('move-current-sector').value = '';
-            alert(`${cat.name} transferido com sucesso!`);
-        }
-
-        function renderMovementsTable() {
-            const body = document.getElementById('table-movements-body');
-            body.innerHTML = '';
-
-            cats.forEach(cat => {
-                const movements = cat.movements || [];
-                movements.forEach(m => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${m.date}</td>
-                        <td><strong>${cat.name}</strong></td>
-                        <td>${m.from} ➡️ ${m.to}</td>
-                        <td>Controle de Leitos</td>
-                    `;
-                    body.appendChild(tr);
-                });
-            });
-        }
-
-        function quickMove(chip) {
-            switchTab('movimentacoes');
-            document.getElementById('move-cat-select').value = chip;
-            updateCurrentSectorLabel();
-        }
-
-        function openPatientProfileDirectly(chip) {
-            switchTab('prontuarios');
-            document.getElementById('patient-search-select').value = chip;
-            loadIndividualPatientProfile();
-        }
-
-        function loadIndividualPatientProfile() {
-            const chip = document.getElementById('patient-search-select').value;
-            const card = document.getElementById('individual-profile-card');
-            
-            if (!chip) {
-                card.style.display = 'none';
-                return;
-            }
-
-            const cat = cats.find(c => c.chip === chip);
-            if (!cat) return;
-
-            document.getElementById('prof-name').innerText = cat.name;
-            document.getElementById('prof-chip').innerText = cat.chip;
-            document.getElementById('prof-age').innerText = cat.age || 'Não informada';
-            
-            const imgEl = document.getElementById('prof-photo');
-            const placeholderEl = document.getElementById('prof-photo-placeholder');
-            if (cat.photo) {
-                imgEl.src = cat.photo;
-                imgEl.style.display = 'block';
-                placeholderEl.style.display = 'none';
-            } else {
-                imgEl.style.display = 'none';
-                placeholderEl.style.display = 'inline-flex';
-            }
-
-            const badge = document.getElementById('prof-badge');
-            badge.innerText = cat.status;
-            badge.className = `badge-status ${getStatusClass(cat.status)}`;
-
-            const historyDiv = document.getElementById('prof-history');
-            const history = cat.history || [];
-            historyDiv.innerHTML = history.map(h => `
-                <div style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">
-                    ${h}
-                </div>
-            `).reverse().join('') || 'Sem evoluções registradas.';
-
-            const medsDiv = document.getElementById('prof-meds');
-            const medications = cat.medications || [];
-            medsDiv.innerHTML = medications.map(m => `
-                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
-                    <strong>${m.name}</strong> - ${m.freq} (${m.period || 'Não informado'})
-                </div>
-            `).join('') || 'Nenhum tratamento ativo cadastrado.';
-
-            const examsDiv = document.getElementById('prof-exams');
-            const exams = cat.exams || [];
-            examsDiv.innerHTML = exams.map(e => {
-                let pdfButtonHTML = '';
-                if (e.pdf) {
-                    pdfButtonHTML = `<br><button onclick="viewExamPDF('${e.pdf}')" class="btn-view-pdf" style="margin-top: 5px;">📄 Ver PDF</button>`;
-                }
-                return `
-                    <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
-                        <small style="color:#64748b;">${e.date}</small><br>
-                        <strong>${e.type}</strong>: ${e.result}
-                        ${pdfButtonHTML}
-                    </div>
-                `;
-            }).reverse().join('') || 'Nenhum exame clínico anexado.';
-
-            const movesDiv = document.getElementById('prof-moves');
-            const movements = cat.movements || [];
-            movesDiv.innerHTML = movements.map(m => `
-                <div style="margin-bottom: 6px; font-size: 0.85rem;">
-                    📅 ${m.date}: De ${m.from} para <strong>${m.to}</strong>
-                </div>
-            `).reverse().join('');
-
-            card.style.display = 'block';
-        }
-
-        function addProfileEvolution() {
-            const input = document.getElementById('prof-new-evolution');
-            const text = input.value.trim();
-            if (!text) return;
-
-            const chip = document.getElementById('patient-search-select').value;
-            const cat = cats.find(c => c.chip === chip);
-            if (cat) {
-                const today = new Date().toLocaleDateString('pt-BR');
-                cat.history = cat.history || [];
-                cat.history.push(`${today}: ${text}`);
-                cat.updatedAt = today;
-                
-                saveCatToSupabase(cat);
-                input.value = '';
-                loadIndividualPatientProfile();
-            }
         }
     </script>
 </body>
