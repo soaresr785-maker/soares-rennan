@@ -116,26 +116,6 @@
             transform: translateY(-2px);
         }
 
-        .btn-config {
-            background-color: #e2e8f0;
-            color: #475569;
-            border: none;
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .btn-config:hover {
-            background-color: #cbd5e1;
-            color: #0f172a;
-        }
-
         .sidebar-footer {
             margin-top: auto;
             padding-top: 15px;
@@ -487,10 +467,6 @@
             <button class="btn-admit-trigger" onclick="openAdmitModal()">
                 <i class="fa-solid fa-plus-circle"></i> Admitir Gato
             </button>
-
-            <button class="btn-config" onclick="openConfigModal()">
-                <i class="fa-solid fa-gear"></i> Configurar Banco
-            </button>
         </div>
 
         <div class="sidebar-footer">
@@ -639,87 +615,30 @@
         </div>
     </div>
 
-    <div class="modal" id="modal-config" style="background: rgba(15, 23, 42, 0.8);">
-        <div class="modal-content animate__animated animate__fadeInDown" style="max-width: 450px;">
-            <h3 style="margin-top:0;"><i class="fa-solid fa-database" style="color:var(--primary-color);"></i> Configurar Conexão Supabase</h3>
-            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
-                Por segurança e para poder usar diretamente no GitHub, insira as credenciais do seu projeto Supabase abaixo. Elas ficam salvas localmente apenas no seu navegador.
-            </p>
-            <div style="margin-bottom:15px;">
-                <label style="font-weight:bold; font-size:0.8rem; display:block; margin-bottom:5px;">SUPABASE URL</label>
-                <input type="text" id="cfg-url" placeholder="Ex: https://xyzabc.supabase.co">
-            </div>
-            <div style="margin-bottom:20px;">
-                <label style="font-weight:bold; font-size:0.8rem; display:block; margin-bottom:5px;">SUPABASE ANON KEY</label>
-                <input type="password" id="cfg-key" placeholder="Sua chave secreta 'anon' 'public'">
-            </div>
-            <div style="text-align:right;">
-                <button class="btn-submit" onclick="saveCredentialsFromModal()">
-                    <i class="fa-solid fa-floppy-disk"></i> Conectar Banco
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        let supabaseClient = null;
+        // ==========================================
+        // CREDENCIAIS FIXAS DO SEU SUPABASE
+        // ==========================================
+        const SUPABASE_URL = "COLE_AQUI_SUA_URL_DO_SUPABASE";
+        const SUPABASE_KEY = "COLE_AQUI_SUA_CHAVE_ANON_DO_SUPABASE";
+
+        // Inicializa o Cliente Supabase diretamente
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let cats = [];
         let activeCat = null;
 
-        // Ao abrir a aplicação, verifica as credenciais salvas no LocalStorage do navegador
+        // Carregamento automático ao iniciar o site
         window.addEventListener('DOMContentLoaded', () => {
-            const savedUrl = localStorage.getItem('FELISHUB_SUPABASE_URL');
-            const savedKey = localStorage.getItem('FELISHUB_SUPABASE_KEY');
-
-            if (savedUrl && savedKey) {
-                initializeSupabase(savedUrl, savedKey);
-            } else {
-                openConfigModal();
-            }
+            console.log("Aplicação carregada. Buscando dados...");
+            fetchCatsData();
+            startRealtimeSubscription();
         });
-
-        // Inicializa o cliente do Supabase
-        function initializeSupabase(url, key) {
-            try {
-                supabaseClient = supabase.createClient(url, key);
-                console.log("Supabase inicializado com sucesso.");
-                fetchCatsData();
-                startRealtimeSubscription();
-            } catch (err) {
-                alert("Falha ao inicializar banco: " + err.message);
-                openConfigModal();
-            }
-        }
-
-        // Abre o modal para digitar credenciais
-        function openConfigModal() {
-            document.getElementById('cfg-url').value = localStorage.getItem('FELISHUB_SUPABASE_URL') || '';
-            document.getElementById('cfg-key').value = localStorage.getItem('FELISHUB_SUPABASE_KEY') || '';
-            document.getElementById('modal-config').style.display = 'flex';
-        }
-
-        // Salva as credenciais do Modal e conecta
-        function saveCredentialsFromModal() {
-            const url = document.getElementById('cfg-url').value.trim();
-            const key = document.getElementById('cfg-key').value.trim();
-
-            if (!url || !key) {
-                alert("Ambos os campos são obrigatórios!");
-                return;
-            }
-
-            localStorage.setItem('FELISHUB_SUPABASE_URL', url);
-            localStorage.setItem('FELISHUB_SUPABASE_KEY', key);
-
-            document.getElementById('modal-config').style.display = 'none';
-            initializeSupabase(url, key);
-        }
 
         // ==========================================
         // LEITURA DOS DADOS (SUPABASE)
         // ==========================================
         async function fetchCatsData() {
-            if (!supabaseClient) return;
             try {
                 const { data, error } = await supabaseClient
                     .from('cats')
@@ -762,7 +681,6 @@
         }
 
         function startRealtimeSubscription() {
-            if (!supabaseClient) return;
             supabaseClient
                 .channel('schema-db-changes')
                 .on(
@@ -776,7 +694,6 @@
         }
 
         async function saveCatToSupabase(catObj) {
-            if (!supabaseClient) throw new Error("Banco de dados não configurado.");
             const dbPayload = {
                 chip: catObj.chip,
                 name: catObj.name,
@@ -1013,7 +930,7 @@
             activeCat.status = dest;
             activeCat.updatedAt = today;
             activeCat.movements.push({ from: origin, to: dest, date: today });
-            activeCat.history.push(`${today}: Transferência de setor de ${origin} para ${dest}.`);
+            activeCat.history.push(`${today}: Transferência de sector de ${origin} para ${dest}.`);
 
             try {
                 await saveCatToSupabase(activeCat);
