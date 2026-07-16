@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FelisHub | Por Rennan</title>
+    <style>
+        :root {
+            --primary-color: #ff8a5c;
+            --primary-hover: #e57c50;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #e2e8f0;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --cti-color: #3b82f6;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.25;
+        }
+
+        /* Sidebar */
+        aside {
+            width: 250px;
+            background-color: #ffffff;
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column; /* Permite empurrar a assinatura para o rodapé */
+        }
+
+        aside h1 {
+            font-size: 1.5rem;
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+        }
+
+        aside p.subtitle {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin: 0 0 24px 0;
+        }
+
+        .tab-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-color);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        /* Rodapé do Desenvolvedor na Sidebar - Cor Escura Ajustada */
+        .sidebar-footer {
+            margin-top: auto; /* Empurra para o final da tela */
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: #1e293b; /* Cinza bem escuro para alto contraste */
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .sidebar-footer strong {
+            color: #0f172a; /* Preto slate para destacar o nome */
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        /* Área de Conteúdo Principal */
+        main {
+            flex: 1;
+            padding: 40px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: var(--text-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+        }
+
+        /* Formulários e Inputs */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+        }
+
+        /* Customização para barra de pesquisa */
+        .search-container {
+            margin: 20px 0 10px 0;
+            position: relative;
+        }
+        
+        .search-input {
+            padding: 12px 12px 12px 40px;
+            border: 2px solid var(--primary-color);
+            background-color: #ffffff;
+            font-weight: 500;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 13px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        button.btn-submit {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button.btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Tabelas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            font-weight: bold;
+            color: #475569;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .clickable-link {
+            color: var(--primary-color);
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Modal / Ficha Detalhada do Gato */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 12px;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #64748b;
+        }
+
+        /* Seções da Ficha Médica */
+        .record-section {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .record-section h4 {
+            margin-top: 0;
+            color: #1e293b;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 6px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .badge-cti { background-color: var(--cti-color); }
+        .badge-gatil { background-color: var(--success-color); }
+        .badge-obito { background-color: #1e293b; }
+
+        /* Estilos para Impressão (PDF de Prescrição) */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div>
+            <h1>🐱 FelisHub</h1>
+            <p class="subtitle">Gestão para Abrigos Felinos</p>
+            <hr>
+            <button class="tab-btn active" onclick="switchTab('cti')">🏥 CTI</button>
+            <button class="tab-btn" onclick="switchTab('gatil')">🐈 Gatil</button>
+        </div>
+
+        <div class="sidebar-footer">
+            Desenvolvido por <strong>Rennan</strong>
+        </div>
+    </aside>
+
+    <main>
+        
+        <div id="tab-cti" class="section active">
+            <h2>🏥 Unidade de Terapia Intensiva (CTI)</h2>
+            <p>Monitore os gatinhos em estado crítico que exigem cuidados intensivos, medicações rigorosas e acompanhamento constante.</p>
+            
+            <div class="record-section">
+                <h4>Admitir Felino no CTI</h4>
+                <form id="form-cti" onsubmit="addCat(event, 'CTI')">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Número do Microchip *</label>
+                            <input type="text" id="cti-chip" required placeholder="Ex: 981020000...">
+                        </div>
+                        <div class="form-group">
+                            <label>Nome do Gato *</label>
+                            <input type="text" id="cti-name" required placeholder="Ex: Frajola">
+                        </div>
+                        <div class="form-group">
+                            <label>Idade Aproximada</label>
+                            <input type="text" id="cti-age" placeholder="Ex: 2 anos">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Motivo da Admissão / Prontuário Inicial</label>
+                        <textarea id="cti-reason" rows="3" placeholder="Sintomas, diagnóstico inicial, estado de hidratação..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">Confirmar Admissão no CTI</button>
+                </form>
+            </div>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-cti" class="search-input" placeholder="Buscar no CTI por Nome ou Microchip..." oninput="renderTables()">
+            </div>
+
+            <h3>Fila de Leitos - CTI</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Microchip</th>
+                        <th>Nome</th>
+                        <th>Idade</th>
+                        <th>Status</th>
+                        <th>Última Atualização</th>
+                    </tr>
+                </thead>
+                <tbody id="table-cti-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div id="tab-gatil" class="section">
+            <h2>🐈 Alojamento Comum - Gatil</h2>
+            <p>Gerencie os felinos que estão saudáveis, em recuperação pós-alta do CTI, ou aguardando adoção responsável.</p>
+            
+            <div class="record-section">
+                <h4>Admitir Felino no Gatil</h4>
+                <form id="form-gatil" onsubmit="addCat(event, 'Gatil')">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Número do Microchip *</label>
+                            <input type="text" id="gatil-chip" required placeholder="Ex: 981020000...">
+                        </div>
+                        <div class="form-group">
+                            <label>Nome do Gato *</label>
+                            <input type="text" id="gatil-name" required placeholder="Ex: Pipoca">
+                        </div>
+                        <div class="form-group">
+                            <label>Idade Aproximada</label>
+                            <input type="text" id="gatil-age" placeholder="Ex: 6 meses">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Observações Comportamentais / Prontuário Inicial</label>
+                        <textarea id="gatil-reason" rows="3" placeholder="Amigável, arredio, convive bem com outros gatos..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">Confirmar Entrada no Gatil</button>
+                </form>
+            </div>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-gatil" class="search-input" placeholder="Buscar no Gatil por Nome ou Microchip..." oninput="renderTables()">
+            </div>
+
+            <h3>Gatos no Gatil</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Microchip</th>
+                        <th>Nome</th>
+                        <th>Idade</th>
+                        <th>Status</th>
+                        <th>Última Atualização</th>
+                    </tr>
+                </thead>
+                <tbody id="table-gatil-body">
+                    </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <div id="cat-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            
+            <h2 id="modal-cat-name" style="margin-bottom: 5px;">Nome do Gato</h2>
+            <p style="margin-top: 0; color: #64748b;">
+                Microchip: <span id="modal-cat-chip" style="font-weight: bold;">-</span> | 
+                Idade: <span id="modal-cat-age">-</span> | 
+                Localização Atual: <span id="modal-cat-status" class="badge-status">-</span>
+            </p>
+
+            <div class="action-row" style="background-color: #f1f5f9; padding: 10px; border-radius: 8px;">
+                <span style="font-weight: bold; align-self: center;">Mudar Status:</span>
+                <button onclick="updateLocation('CTI')" class="btn-submit" style="background-color: var(--cti-color); padding: 5px 10px; font-size: 0.85rem;">Transferir para CTI</button>
+                <button onclick="updateLocation('Gatil')" class="btn-submit" style="background-color: var(--success-color); padding: 5px 10px; font-size: 0.85rem;">Transferir para Gatil</button>
+                <button onclick="registerDeath()" class="btn-submit" style="background-color: var(--danger-color); padding: 5px 10px; font-size: 0.85rem;">Registrar Óbito</button>
+            </div>
+
+            <hr>
+
+            <div class="record-section">
+                <h4>📋 Prontuário Clínico & Evolução</h4>
+                <div id="evolution-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 12px; background: white; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    </div>
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <textarea id="new-evolution-text" rows="2" placeholder="Descreva a nova evolução clínica... (Ex: 'Gato está mais ativo, se alimentando bem sozinho.')"></textarea>
+                </div>
+                <button class="btn-submit" onclick="addEvolution()" style="font-size: 0.85rem; padding: 6px 12px;">Registrar Nova Evolução</button>
+            </div>
+
+            <div class="record-section">
+                <h4>💊 Prescrições e Medicações Ativas</h4>
+                <div id="prescription-list" style="margin-bottom: 12px; background: white; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                    <input type="text" id="med-name" placeholder="Medicamento e Dosagem (Ex: Meloxicam 0,2mg)">
+                    <input type="text" id="med-freq" placeholder="Frequência (Ex: 12h/12h)">
+                    <input type="text" id="med-duration" placeholder="Duração (Ex: 5 dias)">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-submit" onclick="addMedication()" style="font-size: 0.85rem; padding: 6px 12px;">Adicionar Medicamento</button>
+                    <button class="btn-submit" onclick="printPrescription()" style="font-size: 0.85rem; padding: 6px 12px; background-color: #64748b;">🖨️ Gerar PDF da Prescrição</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="print-area" style="display: none; font-family: Arial, sans-serif;">
+        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+            <h1 style="margin: 0; font-size: 24px;">🐱 FelisHub</h1>
+            <p style="margin: 5px 0 0 0; font-size: 14px;">PRESCRIÇÃO CLÍNICA DE ENFERMARIA ANIMAL</p>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <p><strong>Paciente (Felino):</strong> <span id="print-cat-name"></span></p>
+            <p><strong>Microchip ID:</strong> <span id="print-cat-chip"></span></p>
+            <p><strong>Idade Estimada:</strong> <span id="print-cat-age"></span></p>
+            <p><strong>Setor Atual:</strong> <span id="print-cat-status"></span></p>
+            <p><strong>Data de Emissão:</strong> <span id="print-date"></span></p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f2f2f2; border-bottom: 1px solid #000;">
+                    <th style="text-align: left; padding: 8px;">Medicamento / Via de Administração</th>
+                    <th style="text-align: left; padding: 8px;">Frequência</th>
+                    <th style="text-align: left; padding: 8px;">Duração</th>
+                </tr>
+            </thead>
+            <tbody id="print-table-body">
+                </tbody>
+        </table>
+        <div style="margin-top: 60px; text-align: center;">
+            <div style="width: 250px; border-top: 1px solid #000; margin: 0 auto;"></div>
+            <p style="margin-top: 5px; font-size: 12px;">Assinatura do Responsável Clínico / Desenvolvedor do Triador Rennan</p>
+        </div>
+    </div>
+
+    <script>
+        // BANCO DE DADOS LOCAL PERMANENTE
+        let cats = JSON.parse(localStorage.getItem('felishub_database')) || [
+            {
+                chip: "981020001425112",
+                name: "Mingau",
+                age: "3 anos",
+                status: "CTI",
+                history: [
+                    "Admitido no CTI com sintomas agudos de desidratação e obstrução urinária.",
+                    "Procedimento de desobstrução realizado com sucesso. Aguardando monitoramento renal."
+                ],
+                medications: [
+                    { name: "Cerenia 10mg/ml (0,3 ml)", freq: "24h/24h", duration: "3 dias" },
+                    { name: "Soro Ringer Lactato (150 ml)", freq: "Contínuo", duration: "Sob avaliação" }
+                ],
+                updatedAt: new Date().toLocaleDateString('pt-BR')
+            },
+            {
+                chip: "981020001990223",
+                name: "Mel",
+                age: "1 ano",
+                status: "Gatil",
+                history: [
+                    "Castrada e microchipada. Saudável e dócil.",
+                    "Liberada para convívio com outros gatos no alojamento principal."
+                ],
+                medications: [],
+                updatedAt: new Date().toLocaleDateString('pt-BR')
+            }
+        ];
+
+        let selectedCatChip = null;
+
+        function saveToStorage() {
+            localStorage.setItem('felishub_database', JSON.stringify(cats));
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+
+            if (tabId === 'cti') {
+                document.querySelector('.tab-btn:nth-of-type(1)').classList.add('active');
+                document.getElementById('tab-cti').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:nth-of-type(2)').classList.add('active');
+                document.getElementById('tab-gatil').classList.add('active');
+            }
+            renderTables();
+        }
+
+        function renderTables() {
+            const ctiBody = document.getElementById('table-cti-body');
+            const gatilBody = document.getElementById('table-gatil-body');
+            
+            const searchCtiQuery = document.getElementById('search-cti').value.toLowerCase().trim();
+            const searchGatilQuery = document.getElementById('search-gatil').value.toLowerCase().trim();
+            
+            ctiBody.innerHTML = '';
+            gatilBody.innerHTML = '';
+
+            cats.forEach(cat => {
+                const matchCti = cat.name.toLowerCase().includes(searchCtiQuery) || cat.chip.toLowerCase().includes(searchCtiQuery);
+                const matchGatil = cat.name.toLowerCase().includes(searchGatilQuery) || cat.chip.toLowerCase().includes(searchGatilQuery);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="clickable-link" onclick="openCatDetails('${cat.chip}')">${cat.chip}</span></td>
+                    <td><span class="clickable-link" onclick="openCatDetails('${cat.chip}')">${cat.name}</span></td>
+                    <td>${cat.age || 'Não informada'}</td>
+                    <td><span class="badge-status ${getStatusClass(cat.status)}">${cat.status}</span></td>
+                    <td>${cat.updatedAt}</td>
+                `;
+
+                if (cat.status === 'CTI' && matchCti) {
+                    ctiBody.appendChild(tr);
+                } else if (cat.status === 'Gatil' && matchGatil) {
+                    gatilBody.appendChild(tr);
+                }
+            });
+        }
+
+        function getStatusClass(status) {
+            if (status === 'CTI') return 'badge-cti';
+            if (status === 'Gatil') return 'badge-gatil';
+            return 'badge-obito';
+        }
+
+        function addCat(event, section) {
+            event.preventDefault();
+            
+            const chip = document.getElementById(`${section.toLowerCase()}-chip`).value.trim();
+            const name = document.getElementById(`${section.toLowerCase()}-name`).value.trim();
+            const age = document.getElementById(`${section.toLowerCase()}-age`).value.trim();
+            const reason = document.getElementById(`${section.toLowerCase()}-reason`).value.trim();
+
+            if (cats.some(c => c.chip === chip)) {
+                alert("Já existe um felino cadastrado com este número de microchip!");
+                return;
+            }
+
+            const newCat = {
+                chip,
+                name,
+                age,
+                status: section,
+                history: reason ? [reason] : ["Admitido na unidade."],
+                medications: [],
+                updatedAt: new Date().toLocaleDateString('pt-BR')
+            };
+
+            cats.push(newCat);
+            saveToStorage();
+            renderTables();
+            
+            document.getElementById(`form-${section.toLowerCase()}`).reset();
+            alert(`${name} adicionado com sucesso ao ${section}!`);
+        }
+
+        function openCatDetails(chip) {
+            const cat = cats.find(c => c.chip === chip);
+            if (!cat) return;
+
+            selectedCatChip = chip;
+            
+            document.getElementById('modal-cat-name').innerText = cat.name;
+            document.getElementById('modal-cat-chip').innerText = cat.chip;
+            document.getElementById('modal-cat-age').innerText = cat.age || 'Não informada';
+            
+            const statusBadge = document.getElementById('modal-cat-status');
+            statusBadge.innerText = cat.status;
+            statusBadge.className = `badge-status ${getStatusClass(cat.status)}`;
+
+            renderModalHistoryAndMeds(cat);
+
+            document.getElementById('cat-modal').classList.add('active');
+        }
+
+        function renderModalHistoryAndMeds(cat) {
+            const historyDiv = document.getElementById('evolution-list');
+            historyDiv.innerHTML = cat.history.map((h, i) => `
+                <div style="padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.9rem;">
+                    <strong>[${i + 1}]</strong> ${h}
+                </div>
+            `).join('');
+
+            const medsDiv = document.getElementById('prescription-list');
+            if (cat.medications.length === 0) {
+                medsDiv.innerHTML = `<p style="font-size: 0.9rem; color: #64748b; margin: 0;">Nenhuma medicação ativa.</p>`;
+            } else {
+                medsDiv.innerHTML = cat.medications.map((m, i) => `
+                    <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem;">
+                        <span><strong>${m.name}</strong> (${m.freq} — ${m.duration})</span>
+                        <button onclick="removeMedication(${i})" style="border: none; background: none; color: var(--danger-color); cursor: pointer; font-weight: bold;">Remover</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('cat-modal').classList.remove('active');
+            selectedCatChip = null;
+        }
+
+        function updateLocation(newStatus) {
+            const cat = cats.find(c => c.chip === selectedCatChip);
+            if (!cat) return;
+
+            cat.status = newStatus;
+            cat.updatedAt = new Date().toLocaleDateString('pt-BR');
+            cat.history.push(`Transferido de setor para: ${newStatus} em ${cat.updatedAt}`);
+            
+            saveToStorage();
+            alert(`${cat.name} foi movido(a) para ${newStatus}!`);
+            openCatDetails(cat.chip);
+            renderTables();
+        }
+
+        function registerDeath() {
+            const cat = cats.find(c => c.chip === selectedCatChip);
+            if (!cat) return;
+
+            if (confirm(`Tem certeza de que deseja registrar o óbito de ${cat.name}? Essa ação mudará permanentemente o prontuário.`)) {
+                cat.status = 'Óbito';
+                cat.updatedAt = new Date().toLocaleDateString('pt-BR');
+                cat.history.push(`Óbito registrado em ${cat.updatedAt}`);
+                
+                saveToStorage();
+                alert(`Óbito de ${cat.name} documentado com respeito.`);
+                closeModal();
+                renderTables();
+            }
+        }
+
+        function addEvolution() {
+            const textInput = document.getElementById('new-evolution-text');
+            const evolutionText = textInput.value.trim();
+            
+            if (!evolutionText) return;
+
+            const cat = cats.find(c => c.chip === selectedCatChip);
+            if (cat) {
+                const datePrefix = new Date().toLocaleDateString('pt-BR');
+                cat.history.push(`${datePrefix}: ${evolutionText}`);
+                cat.updatedAt = datePrefix;
+                
+                saveToStorage();
+                textInput.value = '';
+                renderModalHistoryAndMeds(cat);
+                renderTables();
+            }
+        }
+
+        function addMedication() {
+            const name = document.getElementById('med-name').value.trim();
+            const freq = document.getElementById('med-freq').value.trim();
+            const duration = document.getElementById('med-duration').value.trim();
+
+            if (!name || !freq) {
+                alert("Insira pelo menos o nome do medicamento e a frequência.");
+                return;
+            }
+
+            const cat = cats.find(c => c.chip === selectedCatChip);
+            if (cat) {
+                cat.medications.push({
+                    name,
+                    freq,
+                    duration: duration || 'Contínuo'
+                });
+
+                saveToStorage();
+
+                document.getElementById('med-name').value = '';
+                document.getElementById('med-freq').value = '';
+                document.getElementById('med-duration').value = '';
+
+                renderModalHistoryAndMeds(cat);
+            }
+        }
+
+        function removeMedication(index) {
+            const cat = cats.find(c => c.chip === selectedCatChip);
+            if (cat) {
+                cat.medications.splice(index, 1);
+                saveToStorage();
+                renderModalHistoryAndMeds(cat);
+            }
+        }
+
+        function printPrescription() {
+            const cat = cats.find(c => c.chip === selectedCatChip);
+            if (!cat) return;
+
+            document.getElementById('print-cat-name').innerText = cat.name;
+            document.getElementById('print-cat-chip').innerText = cat.chip;
+            document.getElementById('print-cat-age').innerText = cat.age || 'Não informada';
+            document.getElementById('print-cat-status').innerText = cat.status;
+            document.getElementById('print-date').innerText = new Date().toLocaleDateString('pt-BR');
+
+            const printTbody = document.getElementById('print-table-body');
+            if (cat.medications.length === 0) {
+                printTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 10px;">Nenhum medicamento ativo prescrito nesta data.</td></tr>`;
+            } else {
+                printTbody.innerHTML = cat.medications.map(m => `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 10px;">${m.name}</td>
+                        <td style="padding: 10px;">${m.freq}</td>
+                        <td style="padding: 10px;">${m.duration}</td>
+                    </tr>
+                `).join('');
+            }
+
+            window.print();
+        }
+
+        renderTables();
+    </script>
+</body>
+</html>
